@@ -1,5 +1,6 @@
 package me.leoko.advancedban.bungee.event;
 
+import me.leoko.advancedban.bungee.managers.DiscordWebhookManager;
 import me.leoko.advancedban.utils.Punishment;
 import net.md_5.bungee.api.plugin.Event;
 
@@ -11,6 +12,8 @@ public class PunishmentEvent extends Event {
 
     public PunishmentEvent(Punishment punishment) {
         this.punishment = punishment;
+
+        DiscordWebhookManager.sendDiscordMessage("New punishment", punishment);
     }
 
     public Punishment getPunishment() {

@@ -27,6 +27,9 @@ LockdownOnError: true
 # This will be the default reason to be displayed if none is given
 DefaultReason: "none"
 
+# The webhook to announce punishments to
+DiscordWebhook: "https://discord.com/api/webhooks/1024113429285445743/nJADBJwkUXZTpjDekoMQca8E_0yOp4Ivq1sxyflD1yPUgbk-8uU_aV6HAni3DAMv9viw"
+
 # Change this if your server has a different time that your users.
 # e.g.: ServerTime: 16:43 | Your Time: 13:43 | TimeDiff has to be set to -3
 # You can check the server time with /systemPrefs

@@ -2,10 +2,7 @@ package me.leoko.advancedban.utils;
 
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
-import me.leoko.advancedban.manager.DatabaseManager;
-import me.leoko.advancedban.manager.MessageManager;
-import me.leoko.advancedban.manager.PunishmentManager;
-import me.leoko.advancedban.manager.TimeManager;
+import me.leoko.advancedban.manager.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

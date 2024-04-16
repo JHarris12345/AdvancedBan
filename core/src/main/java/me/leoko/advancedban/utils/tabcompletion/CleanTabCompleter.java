@@ -24,7 +24,7 @@ public class CleanTabCompleter implements MutableTabCompleter {
         }
 
         if(args.length > 0)
-            suggestions.removeIf(s -> !s.startsWith(args[args.length - 1]));
+            suggestions.removeIf(s -> !s.toLowerCase().startsWith(args[args.length - 1].toLowerCase()));
 
         return suggestions;
     }

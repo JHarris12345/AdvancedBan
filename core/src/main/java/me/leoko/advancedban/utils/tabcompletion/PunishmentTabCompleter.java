@@ -58,7 +58,7 @@ public class PunishmentTabCompleter implements TabCompleter {
 
         if(args.length > 0){
             String[] finalArgs = args;
-            suggestions.removeIf(s -> !s.startsWith(finalArgs[finalArgs.length - 1]));
+            suggestions.removeIf(s -> !s.toLowerCase().startsWith(finalArgs[finalArgs.length - 1].toLowerCase()));
         }
 
         return suggestions;

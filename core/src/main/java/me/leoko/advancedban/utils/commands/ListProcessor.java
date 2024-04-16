@@ -5,6 +5,7 @@ import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.manager.MessageManager;
 import me.leoko.advancedban.utils.Command;
 import me.leoko.advancedban.utils.Punishment;
+import me.leoko.advancedban.utils.PunishmentType;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -85,7 +86,7 @@ public class ListProcessor implements Consumer<Command.CommandInput> {
                     "DURATION", punishment.getDuration(history),
                     "OPERATOR", punishment.getOperator(),
                     "REASON", punishment.getReason(),
-                    "TYPE", punishment.getType().getName(),
+                    "TYPE", getColouredPunishment(punishment.getType()),
                     "ID", punishment.getId() + "",
                     "DATE", format.format(new Date(punishment.getStart())));
 
@@ -100,6 +101,31 @@ public class ListProcessor implements Consumer<Command.CommandInput> {
         if (punishments.size() / 5.0 + 1 > page + 1) {
             MessageManager.sendMessage(input.getSender(), config + ".PageFooter", false,
                     "NEXT_PAGE", (page + 1) + "", "NAME", name);
+        }
+    }
+
+    private String getColouredPunishment(PunishmentType punishmentType) {
+        switch (punishmentType) {
+            default:
+            case NOTE:
+                return "&b&l" + punishmentType.getName();
+
+            case WARNING:
+                return "&a&l" + punishmentType.getName();
+
+            case KICK:
+                return "&e&l" + punishmentType.getName();
+
+            case TEMP_MUTE:
+            case MUTE:
+                return "&6&l" + punishmentType.getName();
+
+            case TEMP_BAN:
+            case BAN:
+                return "&c&l" + punishmentType.getName();
+
+            case IP_BAN:
+                return "&4&l" + punishmentType.getName();
         }
     }
 }

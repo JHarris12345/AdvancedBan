@@ -93,20 +93,30 @@ public class PunishmentManager {
         cached.remove(uuid);
         cached.remove(ip);
 
+        ArrayList<Punishment> punishmentsToRemove = new ArrayList<>();
         Iterator<Punishment> iterator = punishments.iterator();
         while (iterator.hasNext()) {
             Punishment punishment = iterator.next();
             if (punishment.getUuid().equals(uuid) || punishment.getUuid().equals(ip)) {
-                iterator.remove();
+                punishmentsToRemove.add(punishment);
             }
         }
 
+        for (Punishment punishment : punishmentsToRemove) {
+            punishments.remove(punishment);
+        }
+
+        ArrayList<Punishment> historyToRemove = new ArrayList<>();
         iterator = history.iterator();
         while (iterator.hasNext()) {
             Punishment punishment = iterator.next();
             if (punishment.getUuid().equals(uuid) || punishment.getUuid().equals(ip)) {
-                iterator.remove();
+                historyToRemove.add(punishment);
             }
+        }
+
+        for (Punishment punishment : historyToRemove) {
+            history.remove(punishment);
         }
     }
 
@@ -148,6 +158,10 @@ public class PunishmentManager {
                 universal.debugSqlException(ex);
             }
         }
+
+        // Sort the list in order of punishment date (this does latest to earliest)
+        ptList.sort(Comparator.comparingLong(o -> -o.getStart()));
+
         return ptList;
     }
 
