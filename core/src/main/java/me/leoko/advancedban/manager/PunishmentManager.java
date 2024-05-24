@@ -1,10 +1,7 @@
 package me.leoko.advancedban.manager;
 
 import me.leoko.advancedban.Universal;
-import me.leoko.advancedban.utils.InterimData;
-import me.leoko.advancedban.utils.Punishment;
-import me.leoko.advancedban.utils.PunishmentType;
-import me.leoko.advancedban.utils.SQLQuery;
+import me.leoko.advancedban.utils.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +17,8 @@ public class PunishmentManager {
     private final Set<Punishment> punishments = Collections.synchronizedSet(new HashSet<>());
     private final Set<Punishment> history = Collections.synchronizedSet(new HashSet<>());
     private final Set<String> cached = Collections.synchronizedSet(new HashSet<>());
-    
+    public static HashMap<String, RecentBan> recentBans = new HashMap<>(); // A map of all IPs that have recently been banned and their RecentBan object
+
     private Universal universal() {
     	return Universal.get();
     }

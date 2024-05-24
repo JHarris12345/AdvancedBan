@@ -594,7 +594,7 @@ public enum Command {
         private Object sender;
         private String[] args;
 
-        CommandInput(Object sender, String[] args) {
+        public CommandInput(Object sender, String[] args) {
             this.sender = sender;
             this.args = args;
         }

@@ -5,6 +5,11 @@ import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.manager.UUIDManager;
+import me.leoko.advancedban.utils.Command;
+import me.leoko.advancedban.utils.Punishment;
+import me.leoko.advancedban.utils.PunishmentType;
+import me.leoko.advancedban.utils.RecentBan;
+import me.leoko.advancedban.utils.commands.PunishmentProcessor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.event.LoginEvent;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
@@ -27,6 +32,27 @@ public class ConnectionListenerBungee implements Listener {
         UUIDManager.get().supplyInternUUID(event.getConnection().getName(), event.getConnection().getUniqueId());
         event.registerIntent((BungeeMain)Universal.get().getMethods().getPlugin());
         Universal.get().getMethods().runAsync(() -> {
+            String ip = event.getConnection().getAddress().getHostName();
+
+            // Catch if an alt logs in during a ban and ban them too
+            RecentBan recentBan = PunishmentManager.recentBans.getOrDefault(ip, null);
+            if (recentBan != null) {
+                Punishment punishment = recentBan.getPunishment();
+
+               String playerName = event.getConnection().getName();
+               String evadingName = punishment.getName();
+
+               if (!playerName.equals(evadingName) && !recentBan.getCaughtNames().contains(playerName) &&
+                       System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
+                   String args = playerName + " Ban evasion of " + evadingName;
+
+                   new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
+                           args.split(" ")));
+
+                   recentBan.getCaughtNames().add(playerName);
+               }
+            }
+
             String result = Universal.get().callConnection(event.getConnection().getName(), event.getConnection().getAddress().getAddress().getHostAddress());
 
             if (result != null) {

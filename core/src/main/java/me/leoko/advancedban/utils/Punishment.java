@@ -7,6 +7,7 @@ import me.leoko.advancedban.manager.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -102,6 +103,11 @@ public class Punishment {
 
             if (getType().getBasic() == PunishmentType.BAN || getType() == PunishmentType.KICK) {
                 mi.runSync(() -> mi.kickPlayer(getName(), getLayoutBSN()));
+
+                if (getType().getBasic() == PunishmentType.BAN) {
+                    PunishmentManager.recentBans.put(mi.getIP(p), new RecentBan(this, mi.getIP(p), System.currentTimeMillis(), new ArrayList<>()));
+                }
+
             } else {
                 if (getType().getBasic() != PunishmentType.NOTE)
                     for (String str : getLayout()) {

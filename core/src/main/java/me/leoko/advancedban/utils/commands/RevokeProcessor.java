@@ -2,10 +2,14 @@ package me.leoko.advancedban.utils.commands;
 
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.manager.MessageManager;
+import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.utils.Command;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.PunishmentType;
+import me.leoko.advancedban.utils.RecentBan;
 
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static me.leoko.advancedban.utils.CommandUtils.getPunishment;
@@ -40,5 +44,11 @@ public class RevokeProcessor implements Consumer<Command.CommandInput> {
         punishment.delete(operator, false, true);
         MessageManager.sendMessage(input.getSender(), "Un" + type.getName() + ".Done",
                 true, "NAME", name);
+
+        for (RecentBan recentBan : new ArrayList<>(PunishmentManager.recentBans.values())) {
+            if (recentBan.getPunishment().getName().equalsIgnoreCase(name)) {
+                PunishmentManager.recentBans.remove(recentBan.getIp());
+            }
+        }
     }
 }
