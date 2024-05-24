@@ -46,6 +46,13 @@ public class ConnectionListenerBungee implements Listener {
                        System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
                    String args = playerName + " Ban evasion of " + evadingName;
 
+                   if (punishment.getType() == PunishmentType.TEMP_BAN) {
+                       long endTime = punishment.getEnd();
+                       int secondsLeft = (int) Math.ceil((endTime - System.currentTimeMillis()) / 1000d);
+
+                       args = playerName + " " + secondsLeft + "s" + " Ban evasion of " + evadingName;
+                   }
+
                    new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
                            args.split(" ")));
 
