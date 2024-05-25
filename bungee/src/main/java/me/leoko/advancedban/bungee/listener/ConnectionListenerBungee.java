@@ -42,21 +42,25 @@ public class ConnectionListenerBungee implements Listener {
                String playerName = event.getConnection().getName();
                String evadingName = punishment.getName();
 
-               if (!playerName.equals(evadingName) && !recentBan.getCaughtNames().contains(playerName) &&
-                       System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
-                   String args = playerName + " Ban evasion of " + evadingName;
+               if (!playerName.equals(evadingName) && !recentBan.getCaughtNames().contains(playerName)) {
+                   if (System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
+                       String args = playerName + " Ban evasion of " + evadingName;
 
-                   if (punishment.getType() == PunishmentType.TEMP_BAN) {
-                       long endTime = punishment.getEnd();
-                       int secondsLeft = (int) Math.ceil((endTime - System.currentTimeMillis()) / 1000d);
+                       if (punishment.getType() == PunishmentType.TEMP_BAN) {
+                           long endTime = punishment.getEnd();
+                           int secondsLeft = (int) Math.ceil((endTime - System.currentTimeMillis()) / 1000d);
 
-                       args = playerName + " " + secondsLeft + "s" + " Ban evasion of " + evadingName;
+                           args = playerName + " " + secondsLeft + "s" + " Ban evasion of " + evadingName;
+                       }
+
+                       new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
+                               args.split(" ")));
+
+                       recentBan.getCaughtNames().add(playerName);
+
+                   } else {
+                       PunishmentManager.recentBans.remove(ip);
                    }
-
-                   new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
-                           args.split(" ")));
-
-                   recentBan.getCaughtNames().add(playerName);
                }
             }
 
