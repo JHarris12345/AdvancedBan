@@ -1,5 +1,7 @@
 package me.leoko.advancedban.manager;
 
+import me.jharris.bungeecore.managers.plugins.PlayerDatabaseManager;
+import me.jharris.bungeecore.objects.playerdatabase.PDLoadedPlayer;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 
@@ -139,7 +141,14 @@ public class UUIDManager {
      */
     public String getUUID(String name) {
         String inMemoryUuid = getInMemoryUUID(name);
-        return (inMemoryUuid != null) ? inMemoryUuid : getInitialUUID(name);
+        if (inMemoryUuid != null) return inMemoryUuid;
+
+        String initialUUID = getInitialUUID(name);
+        if (initialUUID != null) return initialUUID;
+
+        // If the user is null, as a failsafe we check the player database from BungeeCore
+        PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
+        return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");
     }
 
     /**
