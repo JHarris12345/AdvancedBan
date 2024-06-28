@@ -64,25 +64,28 @@ public class ChatListenerBungee implements Listener {
 
                     if (!caughtWords.contains(filteredWord)) {
                         event.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You tried to use the word '" + filteredWord + "'" +
+                        player.sendMessage(ChatColor.RED + "You tried to use the phrase '" + filteredWord + "'" +
                                 " which results in an immediate permanent ban. As this is your first time, we have" +
                                 " prevented you from using it. Please do not use it again if you want to remain on the server");
 
                         caughtWords.add(filteredWord);
                         Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
-                        Universal.get().log("Warned " + player.getName() + " for use of the word '" + filteredWord + "'");
+                        Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
                     }
 
                     // Else it is an auto-ban word so insta ban and post the proof
                 } else {
                     event.setCancelled(true);
 
-                    String args = player.getName() + " Use of an illegal word: " + filteredWord;
+                    String args = player.getName() + " Use of an illegal phrase: " + filteredWord;
+                    String server = player.getServer().getInfo().getName();
+
                     new PunishmentProcessor(PunishmentType.BAN).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
                             args.split(" ")));
 
                     ProxyServer.getInstance().getScheduler().schedule(BungeeMain.get(), () -> {
-                        DiscordWebhookManager.sendDiscordMessage("`" + player.getName() + "` said: `" + event.getMessage() + "`");
+                        DiscordWebhookManager.sendDiscordMessage("`" + player.getName() + "` said `" + event.getMessage() + "`" +
+                                " on " + server);
                     }, 1, TimeUnit.SECONDS);
                 }
 
