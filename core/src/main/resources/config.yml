@@ -139,3 +139,11 @@ Disable Prefix: false
 # Off by default, so AdvancedBan can override /ban from other plugins
 # This is a Bukkit-specific option. It has no meaning on BungeeCord
 Friendly Register Commands: false
+
+# If a player says any of these words, it will auto ban them and then upload the message as proof to the same webhook the ban is announced
+ImmediateBanWords:
+  - nigger
+
+# If a player says any of these words, it will cancel the chat and send them a warning about using it
+WarnWords:
+  - nigga

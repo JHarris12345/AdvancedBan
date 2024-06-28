@@ -13,7 +13,7 @@ public class PunishmentEvent extends Event {
     public PunishmentEvent(Punishment punishment) {
         this.punishment = punishment;
 
-        DiscordWebhookManager.sendDiscordMessage("New punishment", punishment);
+        DiscordWebhookManager.sendDiscordEmbed("New punishment", punishment);
     }
 
     public Punishment getPunishment() {

@@ -17,10 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 
 /**
@@ -40,8 +37,11 @@ public class Universal {
 
     private static boolean redis = false;
 
-
     private final Gson gson = new Gson();
+
+    public List<String> immediateBanWords = new ArrayList<>();
+    public List<String> warnWords = new ArrayList<>();
+    public HashMap<UUID, List<String>> caughtWarnWords = new HashMap<>(); // A map of each player and a list of words they got warned for saying
 
 
 
@@ -74,6 +74,9 @@ public class Universal {
             log("Failed enabling database-manager...");
             debugException(ex);
         }
+
+        immediateBanWords = mi.getStringList(mi.getConfig(), "ImmediateBanWords");
+        warnWords = mi.getStringList(mi.getConfig(), "WarnWords");
 
         mi.setupMetrics();
         PunishmentManager.get().setup();

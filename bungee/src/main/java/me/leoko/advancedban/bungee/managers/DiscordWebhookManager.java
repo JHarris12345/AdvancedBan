@@ -2,7 +2,6 @@ package me.leoko.advancedban.bungee.managers;
 
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
-import me.leoko.advancedban.bungee.BungeeMethods;
 import me.leoko.advancedban.bungee.utils.DiscordWebhook;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.PunishmentType;
@@ -14,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class DiscordWebhookManager {
 
-    public static void sendDiscordMessage(String title, Punishment punishment) {
+    public static void sendDiscordEmbed(String title, Punishment punishment) {
         BungeeMain.get().getProxy().getScheduler().runAsync(BungeeMain.get(), new Runnable() {
             @Override
             public void run() {
@@ -41,6 +40,23 @@ public class DiscordWebhookManager {
                 }
 
                 webhook.addEmbed(embedObject);
+
+                try {
+                    webhook.execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void sendDiscordMessage(String message) {
+        BungeeMain.get().getProxy().getScheduler().runAsync(BungeeMain.get(), new Runnable() {
+            @Override
+            public void run() {
+                String url = Universal.get().getMethods().getString(Universal.get().getMethods().getConfig(), "DiscordWebhook");
+                DiscordWebhook webhook = new DiscordWebhook(url);
+                webhook.setContent(message);
 
                 try {
                     webhook.execute();
