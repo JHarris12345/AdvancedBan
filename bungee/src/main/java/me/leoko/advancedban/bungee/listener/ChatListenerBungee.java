@@ -3,6 +3,7 @@ package me.leoko.advancedban.bungee.listener;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
 import me.leoko.advancedban.bungee.managers.DiscordWebhookManager;
+import me.leoko.advancedban.bungee.utils.WarnWordsLog;
 import me.leoko.advancedban.utils.Command;
 import me.leoko.advancedban.utils.PunishmentType;
 import me.leoko.advancedban.utils.commands.PunishmentProcessor;
@@ -44,7 +45,7 @@ public class ChatListenerBungee implements Listener {
         }
 
         // Check for filtered words
-        List<String> filteredWords = Universal.get().immediateBanWords;
+        List<String> filteredWords = new ArrayList<>(Universal.get().immediateBanWords);
         filteredWords.addAll(Universal.get().warnWords);
 
         for (String filteredWord : filteredWords) {
@@ -70,10 +71,12 @@ public class ChatListenerBungee implements Listener {
 
                         caughtWords.add(filteredWord);
                         Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
+
                         Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
+                        WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "'");
                     }
 
-                    // Else it is an auto-ban word so insta ban and post the proof
+                    // Else it is an auto-ban word so insta-ban and post the proof
                 } else {
                     event.setCancelled(true);
 
@@ -86,12 +89,14 @@ public class ChatListenerBungee implements Listener {
                     ProxyServer.getInstance().getScheduler().schedule(BungeeMain.get(), () -> {
                         DiscordWebhookManager.sendDiscordMessage("`" + player.getName() + "` said `" + event.getMessage() + "`" +
                                 " on " + server);
-                    }, 1, TimeUnit.SECONDS);
+                        }, 1, TimeUnit.SECONDS);
                 }
 
-                return;
+                break;
             }
         }
+
+        filteredWords.clear();
     }
 
     @EventHandler
