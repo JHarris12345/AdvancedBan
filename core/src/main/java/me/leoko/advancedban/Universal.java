@@ -75,9 +75,6 @@ public class Universal {
             debugException(ex);
         }
 
-        immediateBanWords = mi.getStringList(mi.getConfig(), "ImmediateBanWords");
-        warnWords = mi.getStringList(mi.getConfig(), "WarnWords");
-
         mi.setupMetrics();
         PunishmentManager.get().setup();
 

@@ -93,6 +93,9 @@ public class BungeeMethods implements MethodInterface {
             messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(messageFile);
             layouts = ConfigurationProvider.getProvider(YamlConfiguration.class).load(layoutFile);
 
+            Universal.get().immediateBanWords = config.getStringList("ImmediateBanWords");
+            Universal.get().warnWords = config.getStringList("WarnWords");
+
             if (mysqlFile.exists()) {
                 mysql = ConfigurationProvider.getProvider(YamlConfiguration.class).load(mysqlFile);
             } else {
