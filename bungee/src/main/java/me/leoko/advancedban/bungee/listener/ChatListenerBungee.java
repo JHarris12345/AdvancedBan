@@ -59,6 +59,8 @@ public class ChatListenerBungee implements Listener {
 
             // It contains a filtered word
             if (matcher.find()) {
+                String server = player.getServer().getInfo().getName();
+
                 // If it's a warn word and their first offense, warn them (then log them so we know they've been warned)
                 if (Universal.get().warnWords.contains(filteredWord)) {
                     List<String> caughtWords = Universal.get().caughtWarnWords.getOrDefault(player.getUniqueId(), new ArrayList<>());
@@ -73,15 +75,13 @@ public class ChatListenerBungee implements Listener {
                         Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
 
                         Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
-                        WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "'");
+                        WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "' on " + server + ". Full message: '" + event.getMessage() + "'");
                     }
 
                     // Else it is an auto-ban word so insta-ban and post the proof
                 } else {
                     event.setCancelled(true);
-
                     String args = player.getName() + " Use of an illegal phrase: " + filteredWord;
-                    String server = player.getServer().getInfo().getName();
 
                     new PunishmentProcessor(PunishmentType.BAN).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
                             args.split(" ")));
