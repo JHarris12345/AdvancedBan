@@ -44,7 +44,9 @@ public class ChatListenerBungee implements Listener {
             }
         }
 
-        // Check for filtered words
+        // Check for filtered words. If the player is staff, don't do anything for commands (so we can still delete inappropriate names etc)
+        if (event.isCommand() && player.hasPermission("group.trialmod")) return;
+
         List<String> filteredWords = new ArrayList<>(Universal.get().immediateBanWords);
         filteredWords.addAll(Universal.get().warnWords);
 
