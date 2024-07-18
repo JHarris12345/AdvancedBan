@@ -45,60 +45,62 @@ public class ChatListenerBungee implements Listener {
         }
 
         // Check for filtered words. If the player is staff, don't do anything for commands (so we can still delete inappropriate names etc)
-        if (event.isCommand() && player.hasPermission("group.trialmod")) return;
+        if (!event.isCancelled()) {
+            if (event.isCommand() && player.hasPermission("group.trialmod")) return;
 
-        List<String> filteredWords = new ArrayList<>(Universal.get().immediateBanWords);
-        filteredWords.addAll(Universal.get().warnWords);
+            List<String> filteredWords = new ArrayList<>(Universal.get().immediateBanWords);
+            filteredWords.addAll(Universal.get().warnWords);
 
-        for (String filteredWord : filteredWords) {
-            // If the message doesn't contain any signs of the word, continue
-            if (!event.getMessage().toLowerCase().contains(filteredWord.toLowerCase())) continue;
+            for (String filteredWord : filteredWords) {
+                // If the message doesn't contain any signs of the word, continue
+                if (!event.getMessage().toLowerCase().contains(filteredWord.toLowerCase())) continue;
 
-            // This pattern below matches any filtered word that has no letters before or after it.
-            // It WILL catch non-letters before or after (like _penis, penis&, etc)
-            String pattern = "(?<![\\p{L}])" + filteredWord + "(?![\\p{L}])";
-            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(event.getMessage());
+                // This pattern below matches any filtered word that has no letters before or after it.
+                // It WILL catch non-letters before or after (like _penis, penis&, etc)
+                String pattern = "(?<![\\p{L}])" + filteredWord + "(?![\\p{L}])";
+                Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(event.getMessage());
 
-            // It contains a filtered word
-            if (matcher.find()) {
-                String server = player.getServer().getInfo().getName();
+                // It contains a filtered word
+                if (matcher.find()) {
+                    String server = player.getServer().getInfo().getName();
 
-                // If it's a warn word and their first offense, warn them (then log them so we know they've been warned)
-                if (Universal.get().warnWords.contains(filteredWord)) {
-                    List<String> caughtWords = Universal.get().caughtWarnWords.getOrDefault(player.getUniqueId(), new ArrayList<>());
+                    // If it's a warn word and their first offense, warn them (then log them so we know they've been warned)
+                    if (Universal.get().warnWords.contains(filteredWord)) {
+                        List<String> caughtWords = Universal.get().caughtWarnWords.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
-                    if (!caughtWords.contains(filteredWord)) {
+                        if (!caughtWords.contains(filteredWord)) {
+                            event.setCancelled(true);
+                            player.sendMessage(ChatColor.RED + "You tried to use the phrase '" + filteredWord + "'" +
+                                    " which results in an immediate permanent ban. As this is your first time, we have" +
+                                    " prevented you from using it. Please do not use it again if you want to remain on the server");
+
+                            caughtWords.add(filteredWord);
+                            Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
+
+                            Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
+                            WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "' on " + server + ". Full message: '" + event.getMessage() + "'");
+                        }
+
+                        // Else it is an auto-ban word so insta-ban and post the proof
+                    } else {
                         event.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You tried to use the phrase '" + filteredWord + "'" +
-                                " which results in an immediate permanent ban. As this is your first time, we have" +
-                                " prevented you from using it. Please do not use it again if you want to remain on the server");
+                        String args = player.getName() + " Use of an illegal phrase: " + filteredWord;
 
-                        caughtWords.add(filteredWord);
-                        Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
+                        new PunishmentProcessor(PunishmentType.BAN).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
+                                args.split(" ")));
 
-                        Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
-                        WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "' on " + server + ". Full message: '" + event.getMessage() + "'");
+                        ProxyServer.getInstance().getScheduler().schedule(BungeeMain.get(), () -> {
+                            DiscordWebhookManager.sendDiscordMessage("`" + player.getName() + "` said `" + event.getMessage() + "`" +
+                                    " on " + server);
+                        }, 1, TimeUnit.SECONDS);
                     }
 
-                    // Else it is an auto-ban word so insta-ban and post the proof
-                } else {
-                    event.setCancelled(true);
-                    String args = player.getName() + " Use of an illegal phrase: " + filteredWord;
-
-                    new PunishmentProcessor(PunishmentType.BAN).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
-                            args.split(" ")));
-
-                    ProxyServer.getInstance().getScheduler().schedule(BungeeMain.get(), () -> {
-                        DiscordWebhookManager.sendDiscordMessage("`" + player.getName() + "` said `" + event.getMessage() + "`" +
-                                " on " + server);
-                        }, 1, TimeUnit.SECONDS);
+                    break;
                 }
-
-                break;
             }
-        }
 
-        filteredWords.clear();
+            filteredWords.clear();
+        }
     }
 
     @EventHandler
