@@ -269,6 +269,16 @@ public class Punishment {
         return this.uuid;
     }
 
+    public String getNormalUUID() {
+        String uuid = this.uuid;
+        String formatted = uuid.replaceFirst(
+                "(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})",
+                "$1-$2-$3-$4-$5"
+        );
+
+        return formatted;
+    }
+
     public String getOperator() {
         return this.operator;
     }

@@ -33,10 +33,10 @@ public class DiscordWebhookManager {
                 reason = matcher.replaceAll("");
 
                 if (punishment.getEnd() == -1) {
-                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`");
+                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
 
                 } else {
-                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`. Duration: `" + punishment.getDuration(true) + "`");
+                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`. Duration: `" + punishment.getDuration(true) + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
                 }
 
                 webhook.addEmbed(embedObject);
