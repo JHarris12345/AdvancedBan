@@ -24,7 +24,7 @@ import net.md_5.bungee.event.EventPriority;
 public class ConnectionListenerBungee implements Listener {
 
     @SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.LOW)
+	@EventHandler(priority = EventPriority.NORMAL) // Priority used to be LOW. Changed to NORMAL (can change back if needs be)
     public void onConnection(LoginEvent event) {
         if(event.isCancelled())
             return;
@@ -32,7 +32,7 @@ public class ConnectionListenerBungee implements Listener {
         UUIDManager.get().supplyInternUUID(event.getConnection().getName(), event.getConnection().getUniqueId());
         event.registerIntent((BungeeMain)Universal.get().getMethods().getPlugin());
         Universal.get().getMethods().runAsync(() -> {
-            String ip = event.getConnection().getAddress().getHostName();
+            String ip = event.getConnection().getAddress().getAddress().getHostAddress();
 
             // Catch if an alt logs in during a ban and ban them too
             RecentBan recentBan = PunishmentManager.recentBans.getOrDefault(ip, null);
@@ -64,7 +64,7 @@ public class ConnectionListenerBungee implements Listener {
                }
             }
 
-            String result = Universal.get().callConnection(event.getConnection().getName(), event.getConnection().getAddress().getAddress().getHostAddress());
+            String result = Universal.get().callConnection(event.getConnection().getName(), ip);
 
             if (result != null) {
                 if(BungeeMain.getCloudSupport() != null){
@@ -76,7 +76,7 @@ public class ConnectionListenerBungee implements Listener {
             }
 
             if (Universal.isRedis()) {
-                RedisBungee.getApi().sendChannelMessage("advancedban:connection", event.getConnection().getName() + "," + event.getConnection().getAddress().getAddress().getHostAddress());
+                RedisBungee.getApi().sendChannelMessage("advancedban:connection", event.getConnection().getName() + "," + ip);
             }
             event.completeIntent((BungeeMain) Universal.get().getMethods().getPlugin());
         });
