@@ -98,14 +98,14 @@ public class Punishment {
             announce(cWarnings);
         }
 
-        if (mi.isOnline(getName())) {
+        if (mi.isOnline(getName(), true)) {
             final Object p = mi.getPlayer(getName());
 
             if (getType().getBasic() == PunishmentType.BAN || getType() == PunishmentType.KICK) {
                 mi.runSync(() -> mi.kickPlayer(getName(), getLayoutBSN()));
 
                 if (getType().getBasic() == PunishmentType.BAN) {
-                    PunishmentManager.recentBans.put(mi.getIP(p), new RecentBan(this, mi.getIP(p), System.currentTimeMillis(), new ArrayList<>()));
+                    mi.logBan(getName(), this);
                 }
 
             } else {

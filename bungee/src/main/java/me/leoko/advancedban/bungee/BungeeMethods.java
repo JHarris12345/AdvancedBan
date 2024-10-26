@@ -17,6 +17,7 @@ import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.manager.UUIDManager;
 import me.leoko.advancedban.utils.Permissionable;
 import me.leoko.advancedban.utils.Punishment;
+import me.leoko.advancedban.utils.RecentBan;
 import me.leoko.advancedban.utils.tabcompletion.TabCompleter;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
@@ -35,6 +36,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -207,7 +209,7 @@ public class BungeeMethods implements MethodInterface {
     }
 
     @Override
-    public boolean isOnline(String name) {
+    public boolean isOnline(String name, boolean checkRedis) {
         try {
             if (Universal.isRedis()) {
                 UUID uuid = RedisBungee.getApi().getUuidFromName(name);
@@ -238,6 +240,17 @@ public class BungeeMethods implements MethodInterface {
             RedisBungee.getApi().sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
         } else {
             getPlayer(player).disconnect(TextComponent.fromLegacyText(reason));
+        }
+    }
+
+    @Override
+    public void logBan(String name, Punishment punishment) {
+        if (Universal.isRedis()) {
+            //RedisBungee.getApi().sendChannelMessage("advancedban:main", "logBan " + name + " " + reason);
+
+        } else {
+            ProxiedPlayer player = getPlayer(name);
+            PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
         }
     }
 

@@ -133,7 +133,7 @@ public class TestMethods implements MethodInterface {
     }
 
     @Override
-    public boolean isOnline(String name) {
+    public boolean isOnline(String name, boolean checkRedis) {
         return false;
     }
 

@@ -163,9 +163,10 @@ public interface MethodInterface {
      * Check whether player is online.
      *
      * @param name the name
+     * @param checkRedis if you want to search the whole redis network (if redis is enabled) for the player or just the proxy the plugin instance is on
      * @return the boolean
      */
-    boolean isOnline(String name);
+    boolean isOnline(String name, boolean checkRedis);
 
     /**
      * Get online player by name.
@@ -402,6 +403,12 @@ public interface MethodInterface {
      * @param notification the notification
      */
     void notify(String perm, List<String> notification);
+
+    /**
+     *
+     * Used to log recently banned players so we can insta-ban ban evaders
+     */
+    void logBan(String name, Punishment punishment);
 
     /**
      * Log a message.
