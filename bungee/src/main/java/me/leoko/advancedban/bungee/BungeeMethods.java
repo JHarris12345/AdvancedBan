@@ -36,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -209,9 +210,11 @@ public class BungeeMethods implements MethodInterface {
     public boolean isOnline(String name) {
         try {
             if (Universal.isRedis()) {
-                for (String str : RedisBungee.getApi().getHumanPlayersOnline()) {
-                    if (str.equalsIgnoreCase(name)) {
-                        return RedisBungee.getApi().getPlayerIp(RedisBungee.getApi().getUuidFromName(str)) != null;
+                UUID uuid = RedisBungee.getApi().getUuidFromName(name);
+                Set<UUID> onlinePlayers = RedisBungee.getApi().getPlayersOnline();
+                for (UUID onlineID : onlinePlayers) {
+                    if (uuid.equals(onlineID)) {
+                        return RedisBungee.getApi().getPlayerIp(onlineID) != null;
                     }
                 }
             }
