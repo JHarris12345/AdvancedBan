@@ -42,6 +42,7 @@ public class ConnectionListenerBungee implements Listener {
                String playerName = event.getConnection().getName();
                String evadingName = punishment.getName();
 
+               // If the logging in player is NOT the originally banned player AND they haven't recently been caught for ban evasion
                if (!playerName.equals(evadingName) && !recentBan.getCaughtNames().contains(playerName)) {
                    if (System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
                        String args = playerName + " Ban evasion of " + evadingName;

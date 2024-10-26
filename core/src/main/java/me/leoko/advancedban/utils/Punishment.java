@@ -115,7 +115,7 @@ public class Punishment {
                     }
                 PunishmentManager.get().getLoadedPunishments(false).add(this);
             }
-        } else System.out.println("Not online");
+        };
 
         PunishmentManager.get().getLoadedHistory().add(this);
 
