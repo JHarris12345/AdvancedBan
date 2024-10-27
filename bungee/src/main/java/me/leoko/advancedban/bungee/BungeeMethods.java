@@ -211,7 +211,7 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public boolean isOnline(String name, boolean checkRedis) {
         try {
-            if (Universal.isRedis()) {
+            if (Universal.isRedis() && checkRedis) {
                 UUID uuid = RedisBungee.getApi().getUuidFromName(name);
                 Set<UUID> onlinePlayers = RedisBungee.getApi().getPlayersOnline();
                 for (UUID onlineID : onlinePlayers) {
