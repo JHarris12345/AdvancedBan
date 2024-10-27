@@ -66,7 +66,8 @@ public class PunishmentManager {
                 punishments.add(getPunishmentFromResultSet(resultsPunishments));
             }
             while (resultsHistory.next()) {
-                history.add(getPunishmentFromResultSet(resultsHistory));
+                Punishment punishment = getPunishmentFromResultSet(resultsHistory);
+                history.add(punishment);
             }
 
         } catch (SQLException ex) {

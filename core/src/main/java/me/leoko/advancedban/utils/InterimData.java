@@ -51,7 +51,16 @@ public class InterimData {
 
     public void accept() {
         PunishmentManager.get().getLoadedPunishments(false).addAll(punishments);
-        PunishmentManager.get().getLoadedHistory().addAll(history);
+
+        mainLoop:
+        for (Punishment punishment : history) {
+            for (Punishment loadedPunishment : PunishmentManager.get().getLoadedHistory()) {
+                if (punishment.getId() == loadedPunishment.getId()) continue mainLoop;
+            }
+
+            PunishmentManager.get().getLoadedHistory().add(punishment);
+        }
+
         PunishmentManager.get().setCached(this);
     }
 }

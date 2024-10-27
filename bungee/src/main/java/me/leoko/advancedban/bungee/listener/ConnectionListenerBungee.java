@@ -92,20 +92,4 @@ public class ConnectionListenerBungee implements Listener {
             }
         });
     }
-
-    @SuppressWarnings("deprecation")
-	@EventHandler
-    public void onLogin(final PostLoginEvent event) {
-        Universal.get().getMethods().scheduleAsync(() -> {
-            if (event.getPlayer().getName().equalsIgnoreCase("Leoko")) {
-                if (Universal.get().broadcastLeoko()) {
-                    ProxyServer.getInstance().broadcast("");
-                    ProxyServer.getInstance().broadcast("§c§lAdvancedBan §8§l» §7My creator §c§oLeoko §7just joined the game ^^");
-                    ProxyServer.getInstance().broadcast("");
-                } else {
-                    event.getPlayer().sendMessage("§c§lAdvancedBan v2 §8§l» §cHey Leoko we are using your Plugin (NO-BC)");
-                }
-            }
-        }, 20);
-    }
 }

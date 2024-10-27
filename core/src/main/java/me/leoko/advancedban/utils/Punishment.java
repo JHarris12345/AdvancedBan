@@ -81,7 +81,7 @@ public class Punishment {
         if (getType() != PunishmentType.KICK) {
             try {
                 DatabaseManager.get().executeStatement(SQLQuery.INSERT_PUNISHMENT, getName(), getUuid(), getReason(), getOperator(), getType().name(), getStart(), getEnd(), getCalculation());
-                try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_EXACT_PUNISHMENT, getUuid(), getStart(), getType().name())) {
+                try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_EXACT_PUNISHMENT_HISTORY, getUuid(), getStart(), getType().name())) {
                     if (rs.next()) {
                         id = rs.getInt("id");
                     } else {
@@ -109,16 +109,16 @@ public class Punishment {
                 }
 
             } else {
-                if (getType().getBasic() != PunishmentType.NOTE)
+                if (getType().getBasic() != PunishmentType.NOTE) {
                     for (String str : getLayout()) {
                         mi.sendMessage(p, str);
                     }
+                }
                 PunishmentManager.get().getLoadedPunishments(false).add(this);
             }
         };
 
         PunishmentManager.get().getLoadedHistory().add(this);
-
         mi.callPunishmentEvent(this);
     }
 

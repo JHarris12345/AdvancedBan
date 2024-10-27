@@ -76,6 +76,10 @@ public enum SQLQuery {
             "SELECT * FROM `Punishments` WHERE `uuid` = ? AND `start` = ? AND `punishmentType` = ?",
             "SELECT * FROM Punishments WHERE uuid = ? AND start = ? AND punishmentType = ?"
     ),
+    SELECT_EXACT_PUNISHMENT_HISTORY(
+            "SELECT * FROM `PunishmentHistory` WHERE `uuid` = ? AND `start` = ? AND `punishmentType` = ?",
+            "SELECT * FROM PunishmentHistory WHERE uuid = ? AND start = ? AND punishmentType = ?"
+    ),
     DELETE_PUNISHMENT(
             "DELETE FROM `Punishments` WHERE `id` = ?",
             "DELETE FROM Punishments WHERE id = ?"

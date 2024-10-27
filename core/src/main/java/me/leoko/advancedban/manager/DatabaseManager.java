@@ -67,60 +67,14 @@ public class DatabaseManager {
         executeStatement(SQLQuery.CREATE_TABLE_PUNISHMENT);
         executeStatement(SQLQuery.CREATE_TABLE_PUNISHMENT_HISTORY);
 
-        // Print the entire history
-        /*try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_ALL_PUNISHMENTS_HISTORY)) {
-            while (rs.next()) {
-                Punishment punishment = getPunishmentFromResultSet(rs);
-                HistoryLog.logToFile(punishment);
+        // THE BITS BELOW ARE FOR CONVERTING THE LOCAL DB TO MYSQL
 
-            }
-        } catch (SQLException ex) {
-            Universal.get().log("An error has occurred printing the punishment history");
-            Universal.get().debugSqlException(ex);
-        }*/
+        // Print the entire history
+        //printHistory();
+        //printPunishments();
 
         // Add the entire history to MySQL
-        try {
-            File log = new File(Universal.get().getMethods().getDataFolder(), "HistoryLog.yml");
-            if (!log.exists()) return;
-
-            BufferedReader br = new BufferedReader(new FileReader(log));
-            String line = null;
-
-            try {
-                while ((line = br.readLine()) != null) {
-                    String[] parts = line.split(";;;");
-
-                    if (parts.length != 8) {
-                        Universal.get().log("Couldn't import history due to parts length of " + parts.length + ":");
-                        Universal.get().log(line);
-                        continue;
-                    }
-
-                    String name = parts[0];
-                    String uuid = parts[1];
-                    String reason = parts[2];
-                    String operator = parts[3];
-                    String type = parts[4];
-                    long start = Long.parseLong(parts[5]);
-                    long end = Long.parseLong(parts[6]);
-                    String calculation = parts[7];
-
-                    executeStatement(SQLQuery.INSERT_PUNISHMENT_HISTORY, name, uuid, reason, operator, type, start, end, calculation);
-                }
-
-            } catch (Exception ex) {
-                Universal.get().log("Error importing line:");
-                Universal.get().log(line);
-                ex.printStackTrace();
-
-            } finally {
-                br.close();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //importMySQL();
     }
 
     /**
@@ -232,5 +186,119 @@ public class DatabaseManager {
                 rs.getLong("end"),
                 rs.getString("calculation"),
                 rs.getInt("id"));
+    }
+
+    public void printHistory() {
+        try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_ALL_PUNISHMENTS_HISTORY)) {
+            while (rs.next()) {
+                Punishment punishment = getPunishmentFromResultSet(rs);
+                HistoryLog.logToFile(punishment);
+
+            }
+        } catch (SQLException ex) {
+            Universal.get().log("An error has occurred printing the punishment history");
+            Universal.get().debugSqlException(ex);
+        }
+    }
+
+    public void printPunishments() {
+        try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_ALL_PUNISHMENTS)) {
+            while (rs.next()) {
+                Punishment punishment = getPunishmentFromResultSet(rs);
+                PunishmentsLog.logToFile(punishment);
+
+            }
+        } catch (SQLException ex) {
+            Universal.get().log("An error has occurred printing the punishment history");
+            Universal.get().debugSqlException(ex);
+        }
+    }
+
+    public void importMySQL() {
+        // HISTORY
+        try {
+            File log = new File(Universal.get().getMethods().getDataFolder(), "HistoryLog.yml");
+            if (!log.exists()) return;
+
+            BufferedReader br = new BufferedReader(new FileReader(log));
+            String line = null;
+
+            try {
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(";;;");
+
+                    if (parts.length != 8) {
+                        Universal.get().log("Couldn't import history due to parts length of " + parts.length + ":");
+                        Universal.get().log(line);
+                        continue;
+                    }
+
+                    String name = parts[0];
+                    String uuid = parts[1];
+                    String reason = parts[2];
+                    String operator = parts[3];
+                    String type = parts[4];
+                    long start = Long.parseLong(parts[5]);
+                    long end = Long.parseLong(parts[6]);
+                    String calculation = parts[7];
+
+                    executeStatement(SQLQuery.INSERT_PUNISHMENT_HISTORY, name, uuid, reason, operator, type, start, end, calculation);
+                }
+
+            } catch (Exception ex) {
+                Universal.get().log("Error importing line:");
+                Universal.get().log(line);
+                ex.printStackTrace();
+
+            } finally {
+                br.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // PUNISHMENTS
+        try {
+            File log = new File(Universal.get().getMethods().getDataFolder(), "PunishmentsLog.yml");
+            if (!log.exists()) return;
+
+            BufferedReader br = new BufferedReader(new FileReader(log));
+            String line = null;
+
+            try {
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(";;;");
+
+                    if (parts.length != 8) {
+                        Universal.get().log("Couldn't import punishment due to parts length of " + parts.length + ":");
+                        Universal.get().log(line);
+                        continue;
+                    }
+
+                    String name = parts[0];
+                    String uuid = parts[1];
+                    String reason = parts[2];
+                    String operator = parts[3];
+                    String type = parts[4];
+                    long start = Long.parseLong(parts[5]);
+                    long end = Long.parseLong(parts[6]);
+                    String calculation = parts[7];
+
+                    executeStatement(SQLQuery.INSERT_PUNISHMENT, name, uuid, reason, operator, type, start, end, calculation);
+                }
+
+            } catch (Exception ex) {
+                Universal.get().log("Error importing line:");
+                Universal.get().log(line);
+                ex.printStackTrace();
+
+            } finally {
+                br.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
