@@ -303,4 +303,9 @@ public class TestMethods implements MethodInterface {
     public boolean isUnitTesting() {
         return true;
     }
+
+    @Override
+    public void logBan(String name, Punishment punishment) {
+
+    }
 }
