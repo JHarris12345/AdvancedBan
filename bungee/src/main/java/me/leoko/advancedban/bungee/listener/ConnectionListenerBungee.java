@@ -26,11 +26,11 @@ public class ConnectionListenerBungee implements Listener {
     @SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.NORMAL) // Priority used to be LOW. Changed to NORMAL (can change back if needs be)
     public void onConnection(LoginEvent event) {
-        if(event.isCancelled())
-            return;
+        if (event.isCancelled()) return;
 
         UUIDManager.get().supplyInternUUID(event.getConnection().getName(), event.getConnection().getUniqueId());
         event.registerIntent((BungeeMain)Universal.get().getMethods().getPlugin());
+
         Universal.get().getMethods().runAsync(() -> {
             String ip = event.getConnection().getAddress().getAddress().getHostAddress();
             String result = Universal.get().callConnection(event.getConnection().getName(), ip);
