@@ -24,7 +24,7 @@ import net.md_5.bungee.event.EventPriority;
 public class ConnectionListenerBungee implements Listener {
 
     @SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.NORMAL) // Priority used to be LOW. Changed to NORMAL (can change back if needs be)
+	@EventHandler(priority = EventPriority.LOW)
     public void onConnection(LoginEvent event) {
         if (event.isCancelled()) return;
 
