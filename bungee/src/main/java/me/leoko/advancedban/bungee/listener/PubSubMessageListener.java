@@ -21,6 +21,7 @@ public class PubSubMessageListener implements Listener {
     public void onMessageReceive(PubSubMessageEvent e) {
         if (e.getChannel().equals("advancedban:main")) {
             String[] msg = e.getMessage().split(" ");
+
             if (e.getMessage().startsWith("kick ")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).disconnect(e.getMessage().substring((msg[0] + msg[1]).length() + 2));

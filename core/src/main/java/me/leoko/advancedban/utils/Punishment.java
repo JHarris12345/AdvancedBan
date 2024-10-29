@@ -99,7 +99,7 @@ public class Punishment {
         }
 
         if (mi.isOnline(getName(), true)) {
-            final Object p = mi.getPlayer(getName());
+            //final Object p = mi.getPlayer(getName());
 
             if (getType().getBasic() == PunishmentType.BAN || getType() == PunishmentType.KICK) {
                 mi.runSync(() -> mi.kickPlayer(getName(), getLayoutBSN()));
@@ -111,7 +111,7 @@ public class Punishment {
             } else {
                 if (getType().getBasic() != PunishmentType.NOTE) {
                     for (String str : getLayout()) {
-                        mi.sendMessage(p, str);
+                        mi.sendMessage(getName(), str);
                     }
                 }
                 PunishmentManager.get().getLoadedPunishments(false).add(this);

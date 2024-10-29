@@ -195,6 +195,24 @@ public class BungeeMethods implements MethodInterface {
     }
 
     @Override
+    public void sendMessage(String name, String msg) {
+        if (Universal.isRedis()) {
+            RedisBungee.getApi().sendChannelMessage("advancedban:main", "message " + name + " " + msg);
+
+        } else {
+            if (name.equals("CONSOLE")) {
+                ProxyServer.getInstance().getConsole().sendMessage(msg);
+
+            } else {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(name);
+                if (player != null) {
+                    player.sendMessage(msg);
+                }
+            }
+        }
+    }
+
+    @Override
     public boolean hasPerms(Object player, String perms) {
         return player != null && ((CommandSender) player).hasPermission(perms);
     }

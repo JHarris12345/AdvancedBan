@@ -103,6 +103,11 @@ public interface MethodInterface {
     void sendMessage(Object player, String msg);
 
     /**
+     * The redis way of sending messages
+     */
+    void sendMessage(String name, String msg);
+
+    /**
      * Get a players name.
      *
      * @param player the player
