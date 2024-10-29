@@ -63,11 +63,6 @@ public interface MethodInterface {
      */
     Object getLayouts();
 
-    /**
-     * Set up metrics.
-     */
-    void setupMetrics();
-
     boolean isBungee();
 
     String clearFormatting(String text);
@@ -195,6 +190,8 @@ public interface MethodInterface {
      * @return the object [ ]
      */
     Object[] getOnlinePlayers();
+
+    List<String> getOnlinePlayerNames(boolean redis);
 
     /**
      * Schedule async repeating task.

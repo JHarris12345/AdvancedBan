@@ -18,9 +18,7 @@ public class CleanTabCompleter implements MutableTabCompleter {
 
         if(!suggestions.isEmpty() && suggestions.get(0).equals(PLAYER_PLACEHOLDER)) {
             suggestions.remove(0);
-            for (Object player : Universal.get().getMethods().getOnlinePlayers()){
-                suggestions.add(Universal.get().getMethods().getName(player));
-            }
+            suggestions.addAll(Universal.get().getMethods().getOnlinePlayerNames(true));
         }
 
         if(args.length > 0)

@@ -31,9 +31,7 @@ public class PunishmentTabCompleter implements TabCompleter {
             if(!hiddenTag)
                 suggestions.add("-s");
 
-            for (Object player : methodInterface.getOnlinePlayers()){
-                suggestions.add(methodInterface.getName(player));
-            }
+            suggestions.addAll(methodInterface.getOnlinePlayerNames(true));
             suggestions.add("[Name]");
         } else if(temporary && args.length == 2){
             String current = args[args.length-1];

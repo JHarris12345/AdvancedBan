@@ -4,13 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
+import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.event.PunishmentEvent;
 import me.leoko.advancedban.bungee.event.RevokePunishmentEvent;
 import me.leoko.advancedban.bungee.listener.CommandReceiverBungee;
-import me.leoko.advancedban.bungee.utils.CloudNetCloudPermsOfflineUser;
 import me.leoko.advancedban.bungee.utils.LuckPermsOfflineUser;
 import me.leoko.advancedban.manager.DatabaseManager;
 import me.leoko.advancedban.manager.PunishmentManager;
@@ -28,7 +27,6 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import org.bstats.bungeecord.Metrics;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,12 +34,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Created by Leoko @ dev.skamps.eu on 23.07.2016.
@@ -64,10 +60,6 @@ public class BungeeMethods implements MethodInterface {
             permissionableGenerator = LuckPermsOfflineUser::new;
 
             log("[AdvancedBan] Offline permission support through LuckPerms active");
-        } else if (ProxyServer.getInstance().getPluginManager().getPlugin("CloudNet-CloudPerms") != null) {
-            permissionableGenerator = CloudNetCloudPermsOfflineUser::new;
-
-            log("[AdvancedBan] Offline permission support through CloudNet-CloudPerms active");
         } else {
             permissionableGenerator = null;
 
@@ -158,12 +150,6 @@ public class BungeeMethods implements MethodInterface {
     }
 
     @Override
-    public void setupMetrics() {
-        Metrics metrics = new Metrics(getPlugin());
-        metrics.addCustomChart(new Metrics.SimplePie("MySQL", () -> DatabaseManager.get().isUseMySQL() ? "yes" : "no"));
-    }
-
-    @Override
     public boolean isBungee() {
         return true;
     }
@@ -197,7 +183,7 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public void sendMessage(String name, String msg) {
         if (Universal.isRedis()) {
-            RedisBungee.getApi().sendChannelMessage("advancedban:main", "message " + name + " " + msg);
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("advancedban:main", "message " + name + " " + msg);
 
         } else {
             if (name.equals("CONSOLE")) {
@@ -230,11 +216,11 @@ public class BungeeMethods implements MethodInterface {
     public boolean isOnline(String name, boolean checkRedis) {
         try {
             if (Universal.isRedis() && checkRedis) {
-                UUID uuid = RedisBungee.getApi().getUuidFromName(name);
-                Set<UUID> onlinePlayers = RedisBungee.getApi().getPlayersOnline();
+                UUID uuid = RedisBungeeAPI.getRedisBungeeApi().getUuidFromName(name);
+                Set<UUID> onlinePlayers = RedisBungeeAPI.getRedisBungeeApi().getPlayersOnline();
                 for (UUID onlineID : onlinePlayers) {
                     if (uuid.equals(onlineID)) {
-                        return RedisBungee.getApi().getPlayerIp(onlineID) != null;
+                        return RedisBungeeAPI.getRedisBungeeApi().getPlayerIp(onlineID) != null;
                     }
                 }
             }
@@ -252,10 +238,8 @@ public class BungeeMethods implements MethodInterface {
 
     @Override
     public void kickPlayer(String player, String reason) {
-        if(BungeeMain.getCloudSupport() != null){
-            BungeeMain.getCloudSupport().kick(getPlayer(player).getUniqueId(), reason);
-        }else if (Universal.isRedis()) {
-            RedisBungee.getApi().sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
+        if (Universal.isRedis()) {
+            BungeeMain.redis.sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
         } else {
             getPlayer(player).disconnect(TextComponent.fromLegacyText(reason));
         }
@@ -275,6 +259,24 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public ProxiedPlayer[] getOnlinePlayers() {
         return ProxyServer.getInstance().getPlayers().toArray(new ProxiedPlayer[]{});
+    }
+
+    @Override
+    public List<String> getOnlinePlayerNames(boolean redis) {
+        List<String> names = new ArrayList<>();
+
+        if (Universal.isRedis()) {
+            names = BungeeMain.redis.getHumanPlayersOnline()
+                    .stream()
+                    .filter(Objects::nonNull).collect(Collectors.toList());
+
+        } else {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                names.add(player.getName());
+            }
+        }
+
+        return names;
     }
 
     @Override
@@ -455,7 +457,7 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public void notify(String perm, List<String> notification) {
         if (Universal.isRedis()) {
-            notification.forEach((str) -> RedisBungee.getApi().sendChannelMessage("advancedban:main", "notification " + perm + " " + str));
+            notification.forEach((str) -> BungeeMain.redis.sendChannelMessage("advancedban:main", "notification " + perm + " " + str));
         } else {
             ProxyServer.getInstance().getPlayers()
                     .stream()

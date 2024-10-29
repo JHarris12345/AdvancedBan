@@ -1,9 +1,7 @@
 package me.leoko.advancedban.bungee;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
+import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
 import me.leoko.advancedban.Universal;
-import me.leoko.advancedban.bungee.cloud.CloudSupport;
-import me.leoko.advancedban.bungee.cloud.CloudSupportHandler;
 import me.leoko.advancedban.bungee.listener.ChatListenerBungee;
 import me.leoko.advancedban.bungee.listener.ConnectionListenerBungee;
 import me.leoko.advancedban.bungee.listener.InternalListener;
@@ -18,17 +16,10 @@ import java.util.List;
 public class BungeeMain extends Plugin {
 
     private static BungeeMain instance;
-
-    private static CloudSupport cloudSupport;
-
-
     public static BungeeMain get() {
         return instance;
     }
-
-    public static CloudSupport getCloudSupport() {
-        return cloudSupport;
-    }
+    public static RedisBungeeAPI redis = null;
 
     @Override
     public void onEnable() {
@@ -39,12 +30,11 @@ public class BungeeMain extends Plugin {
         ProxyServer.getInstance().getPluginManager().registerListener(this, new InternalListener());
         ProxyServer.getInstance().registerChannel("advancedban:main");
 
-        cloudSupport = CloudSupportHandler.getCloudSystem();
-
         if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
+            redis = RedisBungeeAPI.getRedisBungeeApi();
             Universal.setRedis(true);
             ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());
-            RedisBungee.getApi().registerPubSubChannels("advancedban:main", "advancedban:connection");
+            redis.registerPubSubChannels("advancedban:main", "advancedban:connection");
             Universal.get().log("RedisBungee detected, hooking into it!");
         } else {
             Universal.get().log("RedisBungee not detected");

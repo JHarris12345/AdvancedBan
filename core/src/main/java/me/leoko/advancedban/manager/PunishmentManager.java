@@ -243,7 +243,7 @@ public class PunishmentManager {
      * @return the warns
      */
     public List<Punishment> getWarns(String uuid) {
-        return getPunishments(uuid, PunishmentType.WARNING, false);
+        return getPunishments(uuid, PunishmentType.WARNING, true);
     } /**
      * Get an active note by id.
     *

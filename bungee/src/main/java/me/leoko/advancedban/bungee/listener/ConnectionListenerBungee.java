@@ -1,6 +1,5 @@
 package me.leoko.advancedban.bungee.listener;
 
-import com.imaginarycode.minecraft.redisbungee.RedisBungee;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
 import me.leoko.advancedban.manager.PunishmentManager;
@@ -36,12 +35,8 @@ public class ConnectionListenerBungee implements Listener {
             String result = Universal.get().callConnection(event.getConnection().getName(), ip);
 
             if (result != null) {
-                if (BungeeMain.getCloudSupport() != null){
-                    BungeeMain.getCloudSupport().kick(event.getConnection().getUniqueId(), result);
-                } else {
-                    event.setCancelled(true);
-                    event.setCancelReason(result);
-                }
+                event.setCancelled(true);
+                event.setCancelReason(result);
             }
 
             // Catch if an alt logs in during a ban and ban them too (this is done after checking if the result is null so it only does the check if they're not already punished)
@@ -78,7 +73,7 @@ public class ConnectionListenerBungee implements Listener {
             }
 
             if (Universal.isRedis()) {
-                RedisBungee.getApi().sendChannelMessage("advancedban:connection", event.getConnection().getName() + "," + ip);
+                BungeeMain.redis.sendChannelMessage("advancedban:connection", event.getConnection().getName() + "," + ip);
             }
             event.completeIntent((BungeeMain) Universal.get().getMethods().getPlugin());
         });
