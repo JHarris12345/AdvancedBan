@@ -3,6 +3,7 @@ package me.leoko.advancedban.bungee.listener;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
 import me.leoko.advancedban.bungee.managers.DiscordWebhookManager;
+import me.leoko.advancedban.bungee.utils.Utils;
 import me.leoko.advancedban.bungee.utils.WarnWordsLog;
 import me.leoko.advancedban.utils.Command;
 import me.leoko.advancedban.utils.PunishmentType;
@@ -53,14 +54,17 @@ public class ChatListenerBungee implements Listener {
         List<String> filteredWords = new ArrayList<>(Universal.get().immediateBanWords);
         filteredWords.addAll(Universal.get().warnWords);
 
+        // We want to ensure things like &nig (underlined ig) don't get caught. So translate colours first
+        String colouredMessage = ChatColor.stripColor(Utils.colour(event.getMessage()));
+
         for (String filteredWord : filteredWords) {
             // If the message doesn't contain any signs of the word, continue
-            if (!event.getMessage().toLowerCase().contains(filteredWord.toLowerCase())) continue;
+            if (!colouredMessage.toLowerCase().contains(filteredWord.toLowerCase())) continue;
 
             // This pattern below matches any filtered word that has no letters before or after it.
             // It WILL catch non-letters before or after (like _penis, penis&, etc)
             String pattern = "(?<![\\p{L}])" + filteredWord + "(?![\\p{L}])";
-            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(event.getMessage());
+            Matcher matcher = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(colouredMessage);
 
             // It contains a filtered word
             if (matcher.find()) {
