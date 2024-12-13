@@ -405,4 +405,21 @@ public class Universal {
             System.out.print(ex.getMessage());
         }
     }
+
+    /**
+     *
+     * Converts an object to a JSON object
+     */
+    public <T> String serialiseObject(T object) {
+        Gson gson = new Gson();
+        return gson.toJson(object);
+    }
+
+    /**
+     * Converts a JSON object back to an object
+     */
+    public <T> Object deserialiseJson(String jsonObject, Class<T> clazz) {
+        Gson gson = new Gson();
+        return gson.fromJson(jsonObject, clazz);
+    }
 }

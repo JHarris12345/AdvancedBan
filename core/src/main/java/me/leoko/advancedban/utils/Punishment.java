@@ -101,6 +101,7 @@ public class Punishment {
         if (mi.isOnline(getName(), true)) {
             //final Object p = mi.getPlayer(getName());
 
+            // Don't need to addToPunishmentMap for bans or kicks because their cache will be re-downloaded from the database when they rejoin (and the punishment was added to the DB above)
             if (getType().getBasic() == PunishmentType.BAN || getType() == PunishmentType.KICK) {
                 mi.runSync(() -> mi.kickPlayer(getName(), getLayoutBSN()));
 
@@ -114,11 +115,11 @@ public class Punishment {
                         mi.sendMessage(getName(), str);
                     }
                 }
-                PunishmentManager.get().getLoadedPunishments(false).add(this);
+                PunishmentManager.get().addToPunishmentMap(this, false, true);
             }
         };
 
-        PunishmentManager.get().getLoadedHistory().add(this);
+        PunishmentManager.get().addToHistoryMap(this, true);
         mi.callPunishmentEvent(this);
     }
 
@@ -165,7 +166,7 @@ public class Punishment {
         DatabaseManager.get().executeStatement(SQLQuery.DELETE_PUNISHMENT, getId());
 
         if (removeCache) {
-            PunishmentManager.get().getLoadedPunishments(false).remove(this);
+            PunishmentManager.get().removeFromPunishmentMap(this, true);
         }
 
         if (who != null) {

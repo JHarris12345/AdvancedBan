@@ -45,4 +45,8 @@ public class BungeeMain extends Plugin {
     public void onDisable() {
         Universal.get().shutdown();
     }
+
+    public String getRedisProxyID() {
+        return redis.getProxyId().replace(" ", "-");
+    }
 }

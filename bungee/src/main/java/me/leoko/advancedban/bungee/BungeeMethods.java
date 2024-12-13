@@ -475,4 +475,14 @@ public class BungeeMethods implements MethodInterface {
     public boolean isUnitTesting() {
         return false;
     }
+
+    @Override
+    public void sendRedisMessage(String channel, String message) {
+        BungeeMain.redis.sendChannelMessage(channel, message);
+    }
+
+    @Override
+    public String getRedisProxyID() {
+        return BungeeMain.get().getRedisProxyID();
+    }
 }

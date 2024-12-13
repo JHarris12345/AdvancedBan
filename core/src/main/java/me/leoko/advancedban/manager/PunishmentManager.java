@@ -14,8 +14,8 @@ import java.util.*;
 public class PunishmentManager {
 
     private static PunishmentManager instance = null;
-    private final Set<Punishment> punishments = Collections.synchronizedSet(new HashSet<>());
-    private final Set<Punishment> history = Collections.synchronizedSet(new HashSet<>());
+    private final Map<Integer, Punishment> punishments = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Integer, Punishment> history = Collections.synchronizedMap(new HashMap<>());
     private final Set<String> cached = Collections.synchronizedSet(new HashSet<>());
     public static HashMap<String, RecentBan> recentBans = new HashMap<>(); // A map of all IPs that have recently been banned and their RecentBan object
 
@@ -93,7 +93,7 @@ public class PunishmentManager {
         cached.remove(ip);
 
         ArrayList<Punishment> punishmentsToRemove = new ArrayList<>();
-        Iterator<Punishment> iterator = punishments.iterator();
+        Iterator<Punishment> iterator = punishments.values().iterator();
         while (iterator.hasNext()) {
             Punishment punishment = iterator.next();
             if (punishment.getUuid().equals(uuid) || punishment.getUuid().equals(ip)) {
@@ -102,11 +102,11 @@ public class PunishmentManager {
         }
 
         for (Punishment punishment : punishmentsToRemove) {
-            punishments.remove(punishment);
+            punishments.remove(punishment.getId());
         }
 
         ArrayList<Punishment> historyToRemove = new ArrayList<>();
-        iterator = history.iterator();
+        iterator = history.values().iterator();
         while (iterator.hasNext()) {
             Punishment punishment = iterator.next();
             if (punishment.getUuid().equals(uuid) || punishment.getUuid().equals(ip)) {
@@ -115,7 +115,7 @@ public class PunishmentManager {
         }
 
         for (Punishment punishment : historyToRemove) {
-            history.remove(punishment);
+            history.remove(punishment.getId());
         }
     }
 
@@ -132,7 +132,7 @@ public class PunishmentManager {
         List<Punishment> ptList = new ArrayList<>();
 
         if (isCached(target)) {
-            for (Iterator<Punishment> iterator = (current ? punishments : history).iterator(); iterator.hasNext(); ) {
+            for (Iterator<Punishment> iterator = (current ? punishments : history).values().iterator(); iterator.hasNext(); ) {
                 Punishment pt = iterator.next();
                 if ((put == null || put == pt.getType().getBasic()) && pt.getUuid().equals(target)) {
                     if (!current || !pt.isExpired()) {
@@ -198,12 +198,8 @@ public class PunishmentManager {
      * @return the punishment
      */
     public Punishment getPunishment(int id) {
-        final Optional<Punishment> cachedPunishment = getLoadedPunishments(false).stream()
-                .filter(punishment -> punishment.getId() == id).findAny();
-
-        if (cachedPunishment.isPresent())
-            return cachedPunishment.get();
-
+        final Punishment cachedPunishment = getLoadedPunishments(false).get(id);
+        if (cachedPunishment != null) return cachedPunishment;
 
         try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_PUNISHMENT_BY_ID, id)) {
             if (rs.next()) {
@@ -343,7 +339,7 @@ public class PunishmentManager {
      */
     public int getCalculationLevel(String uuid, String layout) {
         if (isCached(uuid)) {
-            return (int) history.stream().filter(pt -> pt.getUuid().equals(uuid) && layout.equalsIgnoreCase(pt.getCalculation())).count();
+            return (int) history.values().stream().filter(pt -> pt.getUuid().equals(uuid) && layout.equalsIgnoreCase(pt.getCalculation())).count();
         }
 
         int i = 0;
@@ -386,10 +382,10 @@ public class PunishmentManager {
      * @param checkExpired whether to look for and remove expired punishments
      * @return the cached punishments
      */
-    public Set<Punishment> getLoadedPunishments(boolean checkExpired) {
+    public Map<Integer, Punishment> getLoadedPunishments(boolean checkExpired) {
         if (checkExpired) {
             List<Punishment> toDelete = new ArrayList<>();
-            for (Punishment pu : punishments) {
+            for (Punishment pu : punishments.values()) {
                 if (pu.isExpired()) {
                     toDelete.add(pu);
                 }
@@ -425,8 +421,38 @@ public class PunishmentManager {
      *
      * @return the loaded history
      */
-    public Set<Punishment> getLoadedHistory() {
+    public Map<Integer, Punishment> getLoadedHistory() {
         return history;
+    }
+
+    public void addToPunishmentMap(Punishment punishment, boolean checkExpired, boolean redis) {
+        if (!redis) {
+            PunishmentManager.get().getLoadedPunishments(checkExpired).put(punishment.getId(), punishment);
+
+        } else {
+            String punishmentJSON = Universal.get().serialiseObject(punishment);
+            Universal.get().getMethods().sendRedisMessage("advancedban:main", "addToPunishmentMap " + punishmentJSON);
+        }
+    }
+
+    public void removeFromPunishmentMap(Punishment punishment, boolean redis) {
+        if (!redis) {
+            PunishmentManager.get().getLoadedPunishments(false).remove(punishment.getId());
+
+        } else {
+            String punishmentJSON = Universal.get().serialiseObject(punishment);
+            Universal.get().getMethods().sendRedisMessage("advancedban:main", "removeFromPunishmentMap " + punishmentJSON);
+        }
+    }
+
+    public void addToHistoryMap(Punishment punishment, boolean redis) {
+        if (!redis) {
+            PunishmentManager.get().getLoadedHistory().put(punishment.getId(), punishment);
+
+        } else {
+            String punishmentJSON = Universal.get().serialiseObject(punishment);
+            Universal.get().getMethods().sendRedisMessage("advancedban:main", "addToHistoryMap " + punishmentJSON);
+        }
     }
 
 

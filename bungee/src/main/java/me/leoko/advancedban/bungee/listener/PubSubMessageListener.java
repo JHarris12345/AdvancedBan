@@ -3,10 +3,17 @@ package me.leoko.advancedban.bungee.listener;
 import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
+import me.leoko.advancedban.bungee.BungeeMain;
+import me.leoko.advancedban.manager.PunishmentManager;
+import me.leoko.advancedban.utils.Punishment;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -22,24 +29,69 @@ public class PubSubMessageListener implements Listener {
         if (e.getChannel().equals("advancedban:main")) {
             String[] msg = e.getMessage().split(" ");
 
-            if (e.getMessage().startsWith("kick ")) {
+            // Check for if we are excluding this proxy
+            if (msg[0].startsWith("excludeProxy:")) {
+                String exclude = msg[0].split(":")[1];
+
+                // Before returning, we want to remove the "excludeProxy" bit so all the message have the same parts (as some won't have that)
+                List<String> partsList = new ArrayList<>(Arrays.asList(msg));
+                partsList.remove(0); // Remove the first element
+                msg = partsList.toArray(new String[0]);
+
+                if (BungeeMain.get().getRedisProxyID().equals(exclude)) return;
+            }
+
+            if (msg[0].startsWith("kick ")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).disconnect(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
-            } else if (e.getMessage().startsWith("notification ")) {
+
+            } else if (msg[0].startsWith("notification ")) {
                 for (ProxiedPlayer pp : ProxyServer.getInstance().getPlayers()) {
                     if (mi.hasPerms(pp, msg[1])) {
                         mi.sendMessage(pp, e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                     }
                 }
-            } else if (e.getMessage().startsWith("message ")) {
+
+            } else if (msg[0].startsWith("message ")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).sendMessage(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
                 if (msg[1].equalsIgnoreCase("CONSOLE")) {
                     ProxyServer.getInstance().getConsole().sendMessage(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
+
+            } else if (msg[0].startsWith("addToPunishmentMap")) {
+                StringBuilder punishmentJSON = new StringBuilder();
+                for (int i=1; i<msg.length; i++) {
+                    punishmentJSON.append(msg[i] + " ");
+                }
+
+                Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                PunishmentManager.get().addToPunishmentMap(punishment, false, false);
+
+            } else if (msg[0].startsWith("removeFromPunishmentMap")) {
+                StringBuilder punishmentJSON = new StringBuilder();
+                for (int i=1; i<msg.length; i++) {
+                    punishmentJSON.append(msg[i] + " ");
+                }
+
+                Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                PunishmentManager.get().removeFromPunishmentMap(punishment, false);
+
+            } else if (msg[0].startsWith("addToHistoryMap")) {
+                StringBuilder punishmentJSON = new StringBuilder();
+                for (int i=1; i<msg.length; i++) {
+                    punishmentJSON.append(msg[i] + " ");
+                }
+
+                Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                PunishmentManager.get().addToHistoryMap(punishment,false);
+
+            } else if (msg[0].equals("cachePlayer")) {
+
             }
+
         } else if (e.getChannel().equals("advancedban:connection")) {
             String[] msg = e.getMessage().split(",");
             Universal.get().getIps().remove(msg[0].toLowerCase());

@@ -425,4 +425,8 @@ public interface MethodInterface {
      * @return the boolean
      */
     boolean isUnitTesting();
+
+    void sendRedisMessage(String channel, String message);
+
+    String getRedisProxyID();
 }
