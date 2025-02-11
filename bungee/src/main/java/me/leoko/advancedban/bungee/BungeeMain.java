@@ -27,8 +27,8 @@ public class BungeeMain extends Plugin {
         Universal.get().setup(new BungeeMethods());
         ProxyServer.getInstance().getPluginManager().registerListener(this, new ConnectionListenerBungee());
         ProxyServer.getInstance().getPluginManager().registerListener(this, new ChatListenerBungee());
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new InternalListener());
-        ProxyServer.getInstance().registerChannel("advancedban:main");
+        //ProxyServer.getInstance().getPluginManager().registerListener(this, new InternalListener());
+        //ProxyServer.getInstance().registerChannel("advancedban:main");
 
         if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
             redis = RedisBungeeAPI.getRedisBungeeApi();
