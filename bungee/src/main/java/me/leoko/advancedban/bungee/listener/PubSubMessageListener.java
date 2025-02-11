@@ -41,19 +41,19 @@ public class PubSubMessageListener implements Listener {
                 if (BungeeMain.get().getRedisProxyID().equals(exclude)) return;
             }
 
-            if (msg[0].startsWith("kick ")) {
+            if (msg[0].startsWith("kick")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).disconnect(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
 
-            } else if (msg[0].startsWith("notification ")) {
+            } else if (msg[0].startsWith("notification")) {
                 for (ProxiedPlayer pp : ProxyServer.getInstance().getPlayers()) {
                     if (mi.hasPerms(pp, msg[1])) {
                         mi.sendMessage(pp, e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                     }
                 }
 
-            } else if (msg[0].startsWith("message ")) {
+            } else if (msg[0].startsWith("message")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).sendMessage(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
