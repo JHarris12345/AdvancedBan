@@ -96,6 +96,22 @@ public class PubSubMessageListener implements Listener {
             String[] msg = e.getMessage().split(",");
             Universal.get().getIps().remove(msg[0].toLowerCase());
             Universal.get().getIps().put(msg[0].toLowerCase(), msg[1]);
+
+        } else if (e.getChannel().equals("bungeecore:main")) {
+            String[] msg = e.getMessage().split(" ");
+
+            if (msg[0].startsWith("POPULATE_WARN_WORDS_")) {
+                String json = msg[0].replace("POPULATE_WARN_WORDS_", "");
+                List<String> warnWords = (List<String>) Universal.get().deserialiseJson(json, List.class);
+
+                Universal.get().warnWords = warnWords;
+
+            } else if (msg[0].startsWith("POPULATE_BAN_WORDS_")) {
+                String json = msg[0].replace("POPULATE_BAN_WORDS_", "");
+                List<String> banWords = (List<String>) Universal.get().deserialiseJson(json, List.class);
+
+                Universal.get().immediateBanWords = banWords;
+            }
         }
     }
 }

@@ -88,8 +88,12 @@ public class BungeeMethods implements MethodInterface {
             messages = ConfigurationProvider.getProvider(YamlConfiguration.class).load(messageFile);
             layouts = ConfigurationProvider.getProvider(YamlConfiguration.class).load(layoutFile);
 
-            Universal.get().immediateBanWords = config.getStringList("ImmediateBanWords");
-            Universal.get().warnWords = config.getStringList("WarnWords");
+            // Load the warn words and immediate ban words
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
+
+            //Universal.get().immediateBanWords = config.getStringList("ImmediateBanWords"); // Now populated from the redis control proxy via the redis method above
+            //Universal.get().warnWords = config.getStringList("WarnWords"); // Now populated from the redis control proxy via the redis method above
 
             if (mysqlFile.exists()) {
                 mysql = ConfigurationProvider.getProvider(YamlConfiguration.class).load(mysqlFile);
