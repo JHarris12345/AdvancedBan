@@ -429,4 +429,6 @@ public interface MethodInterface {
     void sendRedisMessage(String channel, String message);
 
     String getRedisProxyID();
+
+    void loadWarnBanWords();
 }

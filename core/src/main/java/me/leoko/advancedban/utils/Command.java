@@ -445,6 +445,7 @@ public enum Command {
                     if (input.getPrimaryData().equals("reload")) {
                         if (Universal.get().hasPerms(sender, "ab.reload")) {
                             mi.loadFiles();
+                            mi.loadWarnBanWords();
                             mi.sendMessage(sender, "§a§lAdvancedBan §8§l» §7Reloaded!");
                         } else {
                             MessageManager.sendMessage(sender, "General.NoPerms", true);
