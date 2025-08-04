@@ -248,7 +248,9 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public void logBan(String name, Punishment punishment) {
         if (Universal.isRedis()) {
-            //RedisBungee.getApi().sendChannelMessage("advancedban:main", "logBan " + name + " " + reason);
+            // Todo: Need to actually make this use redis
+            ProxiedPlayer player = getPlayer(name);
+            PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
 
         } else {
             ProxiedPlayer player = getPlayer(name);
