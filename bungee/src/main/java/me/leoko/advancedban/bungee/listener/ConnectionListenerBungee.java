@@ -64,6 +64,7 @@ public class ConnectionListenerBungee implements Listener {
                                     args.split(" ")));
 
                             recentBan.getCaughtNames().add(playerName);
+                            event.setCancelled(true);
 
                         } else {
                             PunishmentManager.recentBans.remove(ip);
