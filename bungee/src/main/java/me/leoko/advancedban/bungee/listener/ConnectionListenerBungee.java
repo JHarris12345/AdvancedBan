@@ -50,21 +50,25 @@ public class ConnectionListenerBungee implements Listener {
 
                     // If the logging in player is NOT the originally banned player AND they haven't recently been caught for ban evasion
                     if (!playerName.equals(evadingName) && !recentBan.getCaughtNames().contains(playerName)) {
-                        if (System.currentTimeMillis() < recentBan.getBanedAtTime() + 3600000) {
+                        if (System.currentTimeMillis() < recentBan.getBanedAtTime() + (3600000 * 24)) {
                             String args = playerName + " Ban evasion of " + evadingName;
+                            boolean tempEnded = false;
 
                             if (punishment.getType() == PunishmentType.TEMP_BAN) {
                                 long endTime = punishment.getEnd();
-                                int secondsLeft = (int) Math.ceil((endTime - System.currentTimeMillis()) / 1000d);
+                                if (System.currentTimeMillis() > endTime) tempEnded = true;
 
+                                int secondsLeft = (int) Math.ceil((endTime - System.currentTimeMillis()) / 1000d);
                                 args = playerName + " " + secondsLeft + "s" + " Ban evasion of " + evadingName;
                             }
 
-                            new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
-                                    args.split(" ")));
+                            if (!tempEnded) {
+                                new PunishmentProcessor(punishment.getType()).accept(new Command.CommandInput(ProxyServer.getInstance().getConsole(),
+                                        args.split(" ")));
 
-                            recentBan.getCaughtNames().add(playerName);
-                            event.setCancelled(true);
+                                recentBan.getCaughtNames().add(playerName);
+                                event.setCancelled(true);
+                            }
 
                         } else {
                             PunishmentManager.recentBans.remove(ip);
