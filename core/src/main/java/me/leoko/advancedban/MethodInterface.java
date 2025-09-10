@@ -431,4 +431,6 @@ public interface MethodInterface {
     String getRedisProxyID();
 
     void loadWarnBanWords();
+
+    void kickAllOnIP(String ip, String kickMessage);
 }

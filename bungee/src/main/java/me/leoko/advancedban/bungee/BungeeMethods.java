@@ -11,6 +11,7 @@ import me.leoko.advancedban.bungee.event.PunishmentEvent;
 import me.leoko.advancedban.bungee.event.RevokePunishmentEvent;
 import me.leoko.advancedban.bungee.listener.CommandReceiverBungee;
 import me.leoko.advancedban.bungee.utils.LuckPermsOfflineUser;
+import me.leoko.advancedban.bungee.utils.Utils;
 import me.leoko.advancedban.manager.DatabaseManager;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.manager.UUIDManager;
@@ -248,13 +249,13 @@ public class BungeeMethods implements MethodInterface {
     @Override
     public void logBan(String name, Punishment punishment) {
         if (Universal.isRedis()) {
-            // Todo: Need to actually make this use redis
-            ProxiedPlayer player = getPlayer(name);
-            PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
+            BungeeMain.redis.sendChannelMessage("advancedban:main", "logBan " + name + " " + Universal.get().serialiseObject(punishment));
 
         } else {
             ProxiedPlayer player = getPlayer(name);
+
             PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
+            kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
         }
     }
 
@@ -492,5 +493,20 @@ public class BungeeMethods implements MethodInterface {
     public void loadWarnBanWords() {
         RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
         RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
+    }
+
+    @Override
+    public void kickAllOnIP(String ip, String kickMessage) {
+        if (Universal.isRedis()) {
+            BungeeMain.redis.sendChannelMessage("advancedban:main", "kickallonip " + ip + " " + kickMessage);
+
+        } else {
+            for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
+                if (p.getAddress().getHostName().equals(ip)) {
+                    System.out.println("kicking " + p.getName());
+                    //p.disconnect(Utils.colour(kickMessage));
+                }
+            }
+        }
     }
 }

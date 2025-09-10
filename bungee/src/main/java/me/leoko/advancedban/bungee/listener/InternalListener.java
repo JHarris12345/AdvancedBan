@@ -49,6 +49,7 @@ public class InternalListener implements Listener {
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(e.getData());
         String channel = in.readUTF();
+
         switch (channel) {
             case "Punish":
                 String message = in.readUTF();

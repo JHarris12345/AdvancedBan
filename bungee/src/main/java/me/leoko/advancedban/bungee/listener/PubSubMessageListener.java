@@ -4,8 +4,10 @@ import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.bungee.BungeeMain;
+import me.leoko.advancedban.bungee.utils.Utils;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.utils.Punishment;
+import me.leoko.advancedban.utils.RecentBan;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Listener;
@@ -90,6 +92,36 @@ public class PubSubMessageListener implements Listener {
 
             } else if (msg[0].equals("cachePlayer")) {
 
+            } else if (msg[0].equalsIgnoreCase("logBan")) {
+                String playerName = msg[1];
+                StringBuilder punishmentJSON = new StringBuilder();
+
+                for (int i=2; i<msg.length; i++) {
+                    punishmentJSON.append(msg[i] + " ");
+                }
+
+                MethodInterface mi = Universal.get().getMethods();;
+                Object playerObj = mi.getPlayer(playerName);
+
+                if (playerObj instanceof ProxiedPlayer player) {
+                    PunishmentManager.recentBans.put(mi.getIP(player), new RecentBan((Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class), mi.getIP(player), System.currentTimeMillis(), new ArrayList<>()));
+                    mi.kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+                }
+
+            } else if (msg[0].equalsIgnoreCase("kickallonip")) {
+                String ip = msg[1];
+                StringBuilder kickMessage = new StringBuilder();
+
+                for (int i = 2; i < msg.length; i++) {
+                    kickMessage.append(msg[i] + " ");
+                }
+
+                for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
+                    if (p.getAddress().getHostName().equals(ip)) {
+                        System.out.println("kicking " + p.getName());
+                        //p.disconnect(Utils.colour(kickMessage.toString().trim()));
+                    }
+                }
             }
 
         } else if (e.getChannel().equals("advancedban:connection")) {
