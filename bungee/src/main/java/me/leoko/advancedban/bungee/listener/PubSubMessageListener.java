@@ -43,7 +43,7 @@ public class PubSubMessageListener implements Listener {
                 if (BungeeMain.get().getRedisProxyID().equals(exclude)) return;
             }
 
-            if (msg[0].startsWith("kick")) {
+            if (msg[0].equalsIgnoreCase("kick")) {
                 if (ProxyServer.getInstance().getPlayer(msg[1]) != null) {
                     ProxyServer.getInstance().getPlayer(msg[1]).disconnect(e.getMessage().substring((msg[0] + msg[1]).length() + 2));
                 }
@@ -100,7 +100,7 @@ public class PubSubMessageListener implements Listener {
                     punishmentJSON.append(msg[i] + " ");
                 }
 
-                MethodInterface mi = Universal.get().getMethods();;
+                MethodInterface mi = Universal.get().getMethods();
                 Object playerObj = mi.getPlayer(playerName);
 
                 if (playerObj instanceof ProxiedPlayer player) {
@@ -118,8 +118,7 @@ public class PubSubMessageListener implements Listener {
 
                 for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
                     if (p.getAddress().getHostName().equals(ip)) {
-                        System.out.println("kicking " + p.getName());
-                        //p.disconnect(Utils.colour(kickMessage.toString().trim()));
+                        p.disconnect(Utils.colour(kickMessage.toString().trim()));
                     }
                 }
             }

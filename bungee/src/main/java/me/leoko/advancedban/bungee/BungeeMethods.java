@@ -503,8 +503,7 @@ public class BungeeMethods implements MethodInterface {
         } else {
             for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
                 if (p.getAddress().getHostName().equals(ip)) {
-                    System.out.println("kicking " + p.getName());
-                    //p.disconnect(Utils.colour(kickMessage));
+                    p.disconnect(Utils.colour(kickMessage));
                 }
             }
         }
