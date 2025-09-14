@@ -319,7 +319,7 @@ public class BungeeMethods implements MethodInterface {
 
     @Override
     public String getIP(Object player) {
-        return ((ProxiedPlayer) player).getAddress().getHostName();
+        return ((ProxiedPlayer) player).getAddress().getAddress().getHostAddress();
     }
 
     @Override

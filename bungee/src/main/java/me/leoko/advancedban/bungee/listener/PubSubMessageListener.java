@@ -108,7 +108,7 @@ public class PubSubMessageListener implements Listener {
                     Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
                     PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
 
-                    mi.kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+                    mi.kickAllOnIP(ip, "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
                 }
 
             } else if (msg[0].equalsIgnoreCase("kickallonip")) {
