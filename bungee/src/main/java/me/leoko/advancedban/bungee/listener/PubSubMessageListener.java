@@ -104,7 +104,10 @@ public class PubSubMessageListener implements Listener {
                 Object playerObj = mi.getPlayer(playerName);
 
                 if (playerObj instanceof ProxiedPlayer player) {
-                    PunishmentManager.recentBans.put(mi.getIP(player), new RecentBan((Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class), mi.getIP(player), System.currentTimeMillis(), new ArrayList<>()));
+                    String ip = mi.getIP(player);
+                    Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                    PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
+
                     mi.kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
                 }
 
@@ -117,7 +120,7 @@ public class PubSubMessageListener implements Listener {
                 }
 
                 for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
-                    if (p.getAddress().getHostName().equals(ip)) {
+                    if (p.getAddress().getAddress().getHostAddress().equals(ip)) {
                         p.disconnect(Utils.colour(kickMessage.toString().trim()));
                     }
                 }
