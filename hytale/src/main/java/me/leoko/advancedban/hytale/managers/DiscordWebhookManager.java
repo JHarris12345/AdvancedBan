@@ -14,55 +14,49 @@ import java.util.regex.Pattern;
 public class DiscordWebhookManager {
 
     public static void sendDiscordEmbed(String title, Punishment punishment) {
-        HytaleMain.get().getProxy().getScheduler().runAsync(HytaleMain.get(), new Runnable() {
-            @Override
-            public void run() {
-                String url = Universal.get().getMethods().getString(Universal.get().getMethods().getConfig(), "DiscordWebhook");
-                DiscordWebhook webhook = new DiscordWebhook(url);
-                DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject();
+        Universal.get().getMethods().runAsync(() -> {
+            String url = Universal.get().getMethods().getString(Universal.get().getMethods().getConfig(), "DiscordWebhook");
+            DiscordWebhook webhook = new DiscordWebhook(url);
+            DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject();
 
-                embedObject.setColor(getEmbedColour(punishment.getType()));
-                embedObject.setTitle(title);
+            embedObject.setColor(getEmbedColour(punishment.getType()));
+            embedObject.setTitle(title);
 
-                // Using certain characters in the punishment reason will prevent the webhook from sending so we need to make it words, numbers, and punctuation only
-                String reason = punishment.getReason();
+            // Using certain characters in the punishment reason will prevent the webhook from sending so we need to make it words, numbers, and punctuation only
+            String reason = punishment.getReason();
 
-                Pattern pattern = Pattern.compile("[^a-zA-Z0-9\\p{Punct}/ ]|[\"\\\\]"); // Four backslashes removes a literal backslash
-                Matcher matcher = pattern.matcher(reason);
+            Pattern pattern = Pattern.compile("[^a-zA-Z0-9\\p{Punct}/ ]|[\"\\\\]"); // Four backslashes removes a literal backslash
+            Matcher matcher = pattern.matcher(reason);
 
-                reason = matcher.replaceAll("");
+            reason = matcher.replaceAll("");
 
-                if (punishment.getEnd() == -1) {
-                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
+            if (punishment.getEnd() == -1) {
+                embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
 
-                } else {
-                    embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`. Duration: `" + punishment.getDuration(true) + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
-                }
+            } else {
+                embedObject.setDescription("The player `" + punishment.getName() + "` " + createPunishmentString(punishment.getType()) + " by `" + punishment.getOperator() + "` for `" + reason + "`. Duration: `" + punishment.getDuration(true) + "`\\n\\nPlayer UUID: `" + punishment.getNormalUUID() + "`");
+            }
 
-                webhook.addEmbed(embedObject);
+            webhook.addEmbed(embedObject);
 
-                try {
-                    webhook.execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                webhook.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }
 
     public static void sendDiscordMessage(String message) {
-        HytaleMain.get().getProxy().getScheduler().runAsync(HytaleMain.get(), new Runnable() {
-            @Override
-            public void run() {
-                String url = Universal.get().getMethods().getString(Universal.get().getMethods().getConfig(), "DiscordWebhook");
-                DiscordWebhook webhook = new DiscordWebhook(url);
-                webhook.setContent(message);
+        Universal.get().getMethods().runAsync(() -> {
+            String url = Universal.get().getMethods().getString(Universal.get().getMethods().getConfig(), "DiscordWebhook");
+            DiscordWebhook webhook = new DiscordWebhook(url);
+            webhook.setContent(message);
 
-                try {
-                    webhook.execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                webhook.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }

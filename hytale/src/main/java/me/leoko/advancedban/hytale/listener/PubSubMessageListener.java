@@ -8,10 +8,6 @@ import me.leoko.advancedban.hytale.utils.Utils;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.RecentBan;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,13 +17,12 @@ import java.util.List;
  *
  * @author Beelzebu
  */
-public class PubSubMessageListener implements Listener {
+public class PubSubMessageListener {
     
     private static final MethodInterface mi = Universal.get().getMethods();
 
-    @SuppressWarnings("deprecation")
-	@EventHandler
-    public void onMessageReceive(PubSubMessageEvent e) {
+    // No need for redis stuff at the moment
+    /*public void onMessageReceive(PubSubMessageEvent e) {
         if (e.getChannel().equals("advancedban:main")) {
             String[] msg = e.getMessage().split(" ");
 
@@ -146,5 +141,5 @@ public class PubSubMessageListener implements Listener {
                 Universal.get().immediateBanWords = banWords;
             }
         }
-    }
+    }*/
 }

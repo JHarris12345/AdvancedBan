@@ -12,11 +12,7 @@ import me.leoko.advancedban.manager.TimeManager;
 import me.leoko.advancedban.manager.UUIDManager;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.PunishmentType;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.PluginMessageEvent;
-import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.event.EventHandler;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,22 +21,19 @@ import java.util.List;
  *
  * @author Beelzebu
  */
-public class InternalListener implements Listener {
+public class InternalListener  {
 
     private final Universal universal = Universal.get();
 
-    @EventHandler
     public void onPunish(PunishmentEvent e) {
         sendToBukkit("Punish", Arrays.asList(e.getPunishment().toString()));
     }
 
-    @EventHandler
     public void onUnPunish(RevokePunishmentEvent e) {
         sendToBukkit("Unpunish", Arrays.asList(e.getPunishment().toString()));
     }
 
-    @EventHandler
-    public void onPluginMessageEvent(PluginMessageEvent e) {
+    /*public void onPluginMessageEvent(PluginMessageEvent e) {
         if (!e.getTag().equals("advancedban:main")) {
             return;
         }
@@ -79,12 +72,13 @@ public class InternalListener implements Listener {
                 universal.debug("Unknown channel for tag \"AdvancedBan\"");
                 break;
         }
-    }
+    }*/
 
     public void sendToBukkit(String channel, List<String> messages) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        /*ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF(channel);
         messages.forEach(out::writeUTF);
         ProxyServer.getInstance().getServers().keySet().forEach(server -> ProxyServer.getInstance().getServerInfo(server).sendData("advancedban:main", out.toByteArray(), true));
+        */
     }
 }

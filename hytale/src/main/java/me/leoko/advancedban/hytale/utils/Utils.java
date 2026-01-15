@@ -1,31 +1,35 @@
 package me.leoko.advancedban.hytale.utils;
 
-import net.md_5.bungee.api.ChatColor;
+import com.hypixel.hytale.server.core.io.PacketHandler;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.quic.QuicStreamChannel;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
 
-    public static String colour(String string) {
-        Pattern pattern = Pattern.compile("&?#[A-Fa-f0-9]{6}");
-        Matcher matcher = pattern.matcher(string);
-
-        while (matcher.find()) {
-            String hexCode = string.substring(matcher.start(), matcher.end());
-            String replaceSharp = hexCode.replace('#', 'x');
-            String replaceAmp = replaceSharp.replace("&", "");
-
-            char[] ch = replaceAmp.toCharArray();
-            StringBuilder builder = new StringBuilder("");
-            for (char c : ch) {
-                builder.append("&" + c);
-            }
-
-            string = string.replace(hexCode, builder.toString());
-            matcher = pattern.matcher(string);
+    public static String getIPFromPacketHandler(PacketHandler packetHandler) {
+        Channel ch = packetHandler.getChannel();
+        SocketAddress remote;
+        if (ch instanceof QuicStreamChannel quic) {
+            remote = quic.parent().remoteSocketAddress();
+        } else {
+            remote = ch.remoteAddress();
         }
 
-        return ChatColor.translateAlternateColorCodes('&', string);
+        if (remote instanceof InetSocketAddress inet) {
+            // This is the clean numeric IP like "203.0.113.10"
+            if (inet.getAddress() != null) {
+                return inet.getAddress().getHostAddress();
+            }
+            // Fallback if address unresolved
+            return inet.getHostString();
+        }
+
+        return "NULL";
     }
 }

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  */
 public class ChatListenerHytale {
 
-    public void onChat(PlayerChatEvent event) {
+    public static void onChat(PlayerChatEvent event) {
         PlayerRef player = event.getSender();
 
         // There's no command events right now so we just check chat and not commands

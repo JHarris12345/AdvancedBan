@@ -40,7 +40,7 @@ public class BungeeMain extends Plugin {
             Universal.get().log("RedisBungee not detected");
         }
 
-        // Load the warn words and immediate ban words (msut be done AFTER registering the redis channels)
+        // Load the warn words and immediate ban words (must be done AFTER registering the redis channels)
         RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
         RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
     }
