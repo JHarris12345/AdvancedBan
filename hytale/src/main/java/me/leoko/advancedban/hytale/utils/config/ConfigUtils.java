@@ -86,7 +86,7 @@ public class ConfigUtils {
         if (overrides == null) return defaults;
 
         for (Map.Entry<String, Object> e : overrides.entrySet()) {
-            String key = e.getKey();
+            String key = String.valueOf(e.getKey());
             Object overrideVal = e.getValue();
             Object defaultVal = defaults.get(key);
 

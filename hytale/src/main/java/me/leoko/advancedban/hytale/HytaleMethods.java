@@ -165,7 +165,7 @@ public class HytaleMethods implements MethodInterface {
     @SuppressWarnings("deprecation")
     @Override
     public void sendMessage(Object player, String msg) {
-        ((PlayerRef) player).sendMessage(ColourUtils.colour(msg));
+        ((CommandSender) player).sendMessage(ColourUtils.colour(msg.replace("§", "&")));
     }
 
     @Override

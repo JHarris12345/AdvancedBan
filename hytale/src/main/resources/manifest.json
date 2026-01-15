@@ -15,5 +15,5 @@
   "Dependencies": {},
   "OptionalDependencies": {},
   "DisabledByDefault": false,
-  "Main": "me.leoko.advancedban.hytale"
+  "Main": "${project.groupId}.hytale.HytaleMain"
 }

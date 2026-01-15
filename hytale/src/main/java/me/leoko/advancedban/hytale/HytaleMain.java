@@ -33,7 +33,7 @@ public class HytaleMain extends JavaPlugin {
     @Override
     protected void setup() {
         instance = this;
-        configUtils = new ConfigUtils(this,"VerseCore");
+        configUtils = new ConfigUtils(this,"AdvancedBan");
         Universal.get().setup(new HytaleMethods());
 
 

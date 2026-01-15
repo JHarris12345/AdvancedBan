@@ -25,12 +25,13 @@ public class CommandReceiverHytale extends CommandBase {
     @Override
     protected void executeSync(@Nonnull CommandContext ctx) {
         String args[] = ctx.getInputString().split("\\s+");
-        String[] withoutFirst = Arrays.copyOfRange(args, 1, args.length);
+        //String[] withoutFirst = Arrays.copyOfRange(args, 1, args.length);
 
-        if (withoutFirst.length > 0) {
+        if (args.length > 0) {
             PlayerRef target = (PlayerRef) Universal.get().getMethods().getPlayer(args[0]);
             args[0] = target != null ? target.getUsername() : args[0];
         }
+
         CommandManager.get().onCommand(ctx.sender(), this.getName(), args);
     }
 }
