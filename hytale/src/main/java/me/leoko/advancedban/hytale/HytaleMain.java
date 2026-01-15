@@ -3,8 +3,8 @@ package me.leoko.advancedban.hytale;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
 import me.leoko.advancedban.Universal;
-import me.leoko.advancedban.hytale.listener.ChatListenerBungee;
-import me.leoko.advancedban.hytale.listener.ConnectionListenerBungee;
+import me.leoko.advancedban.hytale.listener.ChatListenerHytale;
+import me.leoko.advancedban.hytale.listener.ConnectionListenerHytale;
 import me.leoko.advancedban.hytale.listener.PubSubMessageListener;
 import me.leoko.advancedban.hytale.utils.config.ConfigUtils;
 import net.md_5.bungee.api.ProxyServer;
@@ -16,8 +16,7 @@ public class HytaleMain extends JavaPlugin {
     public static HytaleMain get() {
         return instance;
     }
-    //public static RedisBungeeAPI redis = null;
-    public static Object redis = null;
+    public static RedisBungeeAPI redis = null;
 
     private ConfigUtils configUtils;
 
@@ -26,12 +25,13 @@ public class HytaleMain extends JavaPlugin {
         instance = this;
         configUtils = new ConfigUtils(this,"VerseCore");
         Universal.get().setup(new HytaleMethods());
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new ConnectionListenerBungee());
-        ProxyServer.getInstance().getPluginManager().registerListener(this, new ChatListenerBungee());
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new ConnectionListenerHytale());
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new ChatListenerHytale());
         //ProxyServer.getInstance().getPluginManager().registerListener(this, new InternalListener());
         //ProxyServer.getInstance().registerChannel("advancedban:main");
 
-        if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
+        // Redis doesn't exist yet
+        /*if (ProxyServer.getInstance().getPluginManager().getPlugin("RedisBungee") != null) {
             redis = RedisBungeeAPI.getRedisBungeeApi();
             Universal.setRedis(true);
             ProxyServer.getInstance().getPluginManager().registerListener(this, new PubSubMessageListener());
@@ -39,7 +39,7 @@ public class HytaleMain extends JavaPlugin {
             Universal.get().log("RedisBungee detected, hooking into it!");
         } else {
             Universal.get().log("RedisBungee not detected");
-        }
+        }*/
 
         // Load the warn words and immediate ban words (msut be done AFTER registering the redis channels)
         RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");

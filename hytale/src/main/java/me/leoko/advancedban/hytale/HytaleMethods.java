@@ -4,34 +4,43 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import com.hypixel.hytale.server.core.HytaleServer;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.NameMatching;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
+import com.hypixel.hytale.server.core.console.ConsoleSender;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
+import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
+import io.netty.channel.Channel;
+import io.netty.handler.codec.quic.QuicStreamChannel;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.hytale.event.PunishmentEvent;
 import me.leoko.advancedban.hytale.event.RevokePunishmentEvent;
-import me.leoko.advancedban.hytale.listener.CommandReceiverBungee;
-import me.leoko.advancedban.hytale.utils.LuckPermsOfflineUser;
+import me.leoko.advancedban.hytale.listener.CommandReceiverHytale;
+import me.leoko.advancedban.hytale.utils.ColourUtils;
 import me.leoko.advancedban.hytale.utils.Utils;
 import me.leoko.advancedban.hytale.utils.config.Configuration;
-import me.leoko.advancedban.manager.DatabaseManager;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.manager.UUIDManager;
 import me.leoko.advancedban.utils.Permissionable;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.RecentBan;
 import me.leoko.advancedban.utils.tabcompletion.TabCompleter;
-import sun.jvm.hotspot.oops.MethodDataInterface;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -150,13 +159,13 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void setCommandExecutor(String cmd, String permission, TabCompleter tabCompleter) {
-        ProxyServer.getInstance().getPluginManager().registerCommand(getPlugin(), new CommandReceiverBungee(cmd, permission));
+        getPlugin().getCommandRegistry().registerCommand(new CommandReceiverHytale(cmd, "Moderation commands", permission));
     }
 
     @SuppressWarnings("deprecation")
     @Override
     public void sendMessage(Object player, String msg) {
-        ((CommandSender) player).sendMessage(msg);
+        ((PlayerRef) player).sendMessage(ColourUtils.colour(msg));
     }
 
     @Override
@@ -166,12 +175,12 @@ public class HytaleMethods implements MethodInterface {
 
         } else {
             if (name.equals("CONSOLE")) {
-                ProxyServer.getInstance().getConsole().sendMessage(msg);
+                getPlugin().getLogger().at(Level.INFO).log(msg);
 
             } else {
-                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(name);
+                PlayerRef player = Universe.get().getPlayerByUsername(name, NameMatching.EXACT_IGNORE_CASE);
                 if (player != null) {
-                    player.sendMessage(msg);
+                    player.sendMessage(ColourUtils.colour(msg));
                 }
             }
         }
@@ -179,7 +188,7 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public boolean hasPerms(Object player, String perms) {
-        return player != null && ((CommandSender) player).hasPermission(perms);
+        return player != null && ((Player) player).hasPermission(perms);
     }
 
     @Override
@@ -203,15 +212,15 @@ public class HytaleMethods implements MethodInterface {
                     }
                 }
             }
-            return getPlayer(name).getAddress() != null;
+            return getPlayer(name) != null;
         } catch (NullPointerException exc) {
             return false;
         }
     }
 
     @Override
-    public ProxiedPlayer getPlayer(String name) {
-        return ProxyServer.getInstance().getPlayer(name);
+    public PlayerRef getPlayer(String name) {
+        return Universe.get().getPlayerByUsername(name, NameMatching.EXACT_IGNORE_CASE);
     }
 
 
@@ -220,7 +229,7 @@ public class HytaleMethods implements MethodInterface {
         if (Universal.isRedis()) {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
         } else {
-            getPlayer(player).disconnect(TextComponent.fromLegacyText(reason));
+            getPlayer(player).getPacketHandler().disconnect(reason);
         }
     }
 
@@ -230,16 +239,16 @@ public class HytaleMethods implements MethodInterface {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "logBan " + name + " " + Universal.get().serialiseObject(punishment));
 
         } else {
-            ProxiedPlayer player = getPlayer(name);
+            PlayerRef player = getPlayer(name);
 
             PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
-            kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+            kickAllOnIP(getIP(player), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
         }
     }
 
     @Override
-    public ProxiedPlayer[] getOnlinePlayers() {
-        return ProxyServer.getInstance().getPlayers().toArray(new ProxiedPlayer[]{});
+    public PlayerRef[] getOnlinePlayers() {
+        return Universe.get().getPlayers().toArray(new PlayerRef[]{});
     }
 
     @Override
@@ -252,8 +261,8 @@ public class HytaleMethods implements MethodInterface {
                     .filter(Objects::nonNull).collect(Collectors.toList());
 
         } else {
-            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
-                names.add(player.getName());
+            for (PlayerRef player : getOnlinePlayers()) {
+                names.add(player.getUsername());
             }
         }
 
@@ -262,17 +271,20 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void scheduleAsyncRep(Runnable rn, long l1, long l2) {
-        ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, l2 * 50, TimeUnit.MILLISECONDS);
+        // Not sure how to make schedulers yet and it appears this code doesn't run at all anyway
+        //ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, l2 * 50, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void scheduleAsync(Runnable rn, long l1) {
-        ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, TimeUnit.MILLISECONDS);
+        // Not sure how to make schedulers yet and it appears this code doesn't run at all anyway
+        //ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void runAsync(Runnable rn) {
-        ProxyServer.getInstance().getScheduler().runAsync(getPlugin(), rn);
+        //ProxyServer.getInstance().getScheduler().runAsync(getPlugin(), rn);
+        CompletableFuture.runAsync(rn);
     }
 
     @Override
@@ -282,36 +294,54 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void executeCommand(String cmd) {
-        ProxyServer.getInstance().getPluginManager().dispatchCommand(ProxyServer.getInstance().getConsole(), cmd);
+        HytaleServer.get().getCommandManager().handleCommand(ConsoleSender.INSTANCE, cmd);
     }
 
     @Override
     public String getName(Object player) {
-        return ((CommandSender) player).getName();
+        return ((CommandSender) player).getDisplayName();
     }
 
     @Override
     public String getName(String uuid) {
-        return ProxyServer.getInstance().getPlayer(UUID.fromString(uuid)).getName();
+        PlayerRef playerRef = Universe.get().getPlayer(UUID.fromString(uuid));
+        return (playerRef == null) ? "NULL" : playerRef.getUsername();
     }
 
     @Override
-    public String getIP(Object player) {
-        return ((ProxiedPlayer) player).getAddress().getAddress().getHostAddress();
+    public String getIP(Object playerRef) {
+        Channel ch = ((PlayerRef) playerRef).getPacketHandler().getChannel();
+        SocketAddress remote;
+        if (ch instanceof QuicStreamChannel quic) {
+            remote = quic.parent().remoteSocketAddress();
+        } else {
+            remote = ch.remoteAddress();
+        }
+
+        if (remote instanceof InetSocketAddress inet) {
+            // This is the clean numeric IP like "203.0.113.10"
+            if (inet.getAddress() != null) {
+                return inet.getAddress().getHostAddress();
+            }
+            // Fallback if address unresolved
+            return inet.getHostString();
+        }
+
+        return "NULL";
     }
 
     @Override
     public String getInternUUID(Object player) {
-        return player instanceof ProxiedPlayer ? ((ProxiedPlayer) player).getUniqueId().toString().replaceAll("-", "") : "none";
+        return player instanceof CommandSender sender ? ((PlayerRef) sender).getUuid().toString().replaceAll("-", "") : "none";
     }
 
     @Override
     public String getInternUUID(String player) {
-        ProxiedPlayer proxiedPlayer = getPlayer(player);
+        PlayerRef proxiedPlayer = getPlayer(player);
         if (proxiedPlayer == null) {
             return null;
         }
-        UUID uniqueId = proxiedPlayer.getUniqueId();
+        UUID uniqueId = proxiedPlayer.getUuid();
         return uniqueId == null ? null : uniqueId.toString().replaceAll("-", "");
     }
 
@@ -422,17 +452,18 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void callPunishmentEvent(Punishment punishment) {
-        getPlugin().getProxy().getPluginManager().callEvent(new PunishmentEvent(punishment));
+        HytaleServer.get().getEventBus().dispatch(PunishmentEvent.class);
     }
 
     @Override
     public void callRevokePunishmentEvent(Punishment punishment, boolean massClear) {
-        getPlugin().getProxy().getPluginManager().callEvent(new RevokePunishmentEvent(punishment, massClear));
+        HytaleServer.get().getEventBus().dispatch(RevokePunishmentEvent.class);
     }
 
     @Override
     public boolean isOnlineMode() {
-        return ProxyServer.getInstance().getConfig().isOnlineMode();
+        return true;
+        //return ProxyServer.getInstance().getConfig().isOnlineMode();
     }
 
     @Override
@@ -440,17 +471,17 @@ public class HytaleMethods implements MethodInterface {
         if (Universal.isRedis()) {
             notification.forEach((str) -> HytaleMain.redis.sendChannelMessage("advancedban:main", "notification " + perm + " " + str));
         } else {
-            ProxyServer.getInstance().getPlayers()
-                    .stream()
-                    .filter((pp) -> (Universal.get().hasPerms(pp, perm)))
-                    .forEachOrdered((pp) -> notification.forEach((str) -> sendMessage(pp, str)));
+            for (PlayerRef playerRef : getOnlinePlayers()) {
+                if (playerRef.getHolder().getComponent(Player.getComponentType()).hasPermission(perm)) {
+                    notification.forEach(msg -> playerRef.sendMessage(ColourUtils.colour(msg)));
+                }
+            }
         }
     }
 
     @Override
     public void log(String msg) {
-        ProxyServer.getInstance().getConsole().sendMessage(TextComponent.fromLegacyText(msg.replaceAll("&", "§")));
-    }
+        getPlugin().getLogger().at(Level.INFO).log(msg);}
 
     @Override
     public boolean isUnitTesting() {
@@ -479,9 +510,9 @@ public class HytaleMethods implements MethodInterface {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "kickallonip " + ip + " " + kickMessage);
 
         } else {
-            for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
-                if (p.getAddress().getAddress().getHostAddress().equals(ip)) {
-                    p.disconnect(Utils.colour(kickMessage));
+            for (PlayerRef p : getOnlinePlayers()) {
+                if (getIP(p).equals(ip)) {
+                    p.getPacketHandler().disconnect(kickMessage);
                 }
             }
         }

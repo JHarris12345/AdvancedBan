@@ -20,7 +20,7 @@ import net.md_5.bungee.event.EventPriority;
 /**
  * Created by Leoko @ dev.skamps.eu on 24.07.2016.
  */
-public class ConnectionListenerBungee implements Listener {
+public class ConnectionListenerHytale implements Listener {
 
     @SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.LOW)

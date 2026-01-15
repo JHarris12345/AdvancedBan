@@ -1,13 +1,13 @@
 package me.leoko.advancedban.hytale.event;
 
+import com.hypixel.hytale.event.IEvent;
 import me.leoko.advancedban.utils.Punishment;
-import net.md_5.bungee.api.plugin.Event;
 
 /**
  * Event fired when a punishment is revoked
  */
 
-public class RevokePunishmentEvent extends Event {
+public class RevokePunishmentEvent implements IEvent<Void> {
     private final Punishment punishment;
     private final boolean massClear;
 

@@ -255,7 +255,7 @@ public class BungeeMethods implements MethodInterface {
             ProxiedPlayer player = getPlayer(name);
 
             PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
-            kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+            kickAllOnIP(getIP(player), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
         }
     }
 
