@@ -12,6 +12,7 @@
     <modules>
         <module>core</module>
         <module>bungee</module>
+        <module>hytale</module>
         <module>bundle</module>
     </modules>
 

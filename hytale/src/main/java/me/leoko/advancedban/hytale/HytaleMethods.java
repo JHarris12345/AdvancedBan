@@ -1,0 +1,489 @@
+package me.leoko.advancedban.hytale;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.hypixel.hytale.server.core.plugin.JavaPlugin;
+import me.leoko.advancedban.MethodInterface;
+import me.leoko.advancedban.Universal;
+import me.leoko.advancedban.hytale.event.PunishmentEvent;
+import me.leoko.advancedban.hytale.event.RevokePunishmentEvent;
+import me.leoko.advancedban.hytale.listener.CommandReceiverBungee;
+import me.leoko.advancedban.hytale.utils.LuckPermsOfflineUser;
+import me.leoko.advancedban.hytale.utils.Utils;
+import me.leoko.advancedban.hytale.utils.config.Configuration;
+import me.leoko.advancedban.manager.DatabaseManager;
+import me.leoko.advancedban.manager.PunishmentManager;
+import me.leoko.advancedban.manager.UUIDManager;
+import me.leoko.advancedban.utils.Permissionable;
+import me.leoko.advancedban.utils.Punishment;
+import me.leoko.advancedban.utils.RecentBan;
+import me.leoko.advancedban.utils.tabcompletion.TabCompleter;
+import sun.jvm.hotspot.oops.MethodDataInterface;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ * Created by Leoko @ dev.skamps.eu on 23.07.2016.
+ */
+public class HytaleMethods implements MethodInterface {
+
+    private final File configFile = new File(getDataFolder(), "config.yml");
+    private final File messageFile = new File(getDataFolder(), "Messages.yml");
+    private final File layoutFile = new File(getDataFolder(), "Layouts.yml");
+    private final File mysqlFile = new File(getDataFolder(), "MySQL.yml");
+    private Configuration config;
+    private Configuration messages;
+    private Configuration layouts;
+    private Configuration mysql;
+
+    private final Function<String, Permissionable> permissionableGenerator;
+
+    public HytaleMethods() {
+        /*if (ProxyServer.getInstance().getPluginManager().getPlugin("LuckPerms") != null) {
+            permissionableGenerator = LuckPermsOfflineUser::new;
+
+            log("[AdvancedBan] Offline permission support through LuckPerms active");
+        } else {
+            permissionableGenerator = null;
+
+            log("[AdvancedBan] No offline permission support through LuckPerms or CloudNet-CloudPerms");
+        }*/
+
+        permissionableGenerator = null;
+
+        log("[AdvancedBan] No offline permission support through LuckPerms or CloudNet-CloudPerms");
+    }
+
+    @Override
+    public void loadFiles() {
+        if (!getDataFolder().exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            getDataFolder().mkdirs();
+        }
+
+        config = getPlugin().getConfigUtils().loadResource("config.yml");
+        messages = getPlugin().getConfigUtils().loadResource("Messages.yml");
+        layouts = getPlugin().getConfigUtils().loadResource("Layouts.yml");
+        mysql = getPlugin().getConfigUtils().loadResource("MySQL.yml");
+
+        Universal.get().immediateBanWords = config.getStringList("ImmediateBanWords");
+        Universal.get().warnWords = config.getStringList("WarnWords");
+    }
+
+    @Override
+    public String getFromUrlJson(String url, String key) {
+        try {
+            HttpURLConnection request = (HttpURLConnection) new URL(url).openConnection();
+            request.connect();
+
+            JsonParser jp = new JsonParser();
+            JsonObject json = (JsonObject) jp.parse(new InputStreamReader(request.getInputStream()));
+
+            String[] keys = key.split("\\|");
+            for (int i = 0; i < keys.length - 1; i++) {
+                json = json.getAsJsonObject(keys[i]);
+            }
+
+            return json.get(keys[keys.length - 1]).toString().replaceAll("\"", "");
+
+        } catch (Exception exc) {
+            return null;
+        }
+    }
+
+    @Override
+    public String getVersion() {
+        return "1.0";
+    }
+
+    @Override
+    public String[] getKeys(Object file, String path) {
+        return ((Configuration) file).getSection(path).getKeys(false).toArray(new String[0]);
+    }
+
+    @Override
+    public Configuration getConfig() {
+        return config;
+    }
+
+    @Override
+    public Configuration getMessages() {
+        return messages;
+    }
+
+    @Override
+    public Configuration getLayouts() {
+        return layouts;
+    }
+
+    @Override
+    public boolean isBungee() {
+        return true;
+    }
+
+    @Override
+    public String clearFormatting(String text) {
+        return text; // For it to be a String, we would have already had to strip the formatting
+    }
+
+    @Override
+    public HytaleMain getPlugin() {
+        return HytaleMain.get();
+    }
+
+    @Override
+    public File getDataFolder() {
+        return getPlugin().getConfigUtils().pluginDirectory.toFile();
+    }
+
+    @Override
+    public void setCommandExecutor(String cmd, String permission, TabCompleter tabCompleter) {
+        ProxyServer.getInstance().getPluginManager().registerCommand(getPlugin(), new CommandReceiverBungee(cmd, permission));
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void sendMessage(Object player, String msg) {
+        ((CommandSender) player).sendMessage(msg);
+    }
+
+    @Override
+    public void sendMessage(String name, String msg) {
+        if (Universal.isRedis()) {
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("advancedban:main", "message " + name + " " + msg);
+
+        } else {
+            if (name.equals("CONSOLE")) {
+                ProxyServer.getInstance().getConsole().sendMessage(msg);
+
+            } else {
+                ProxiedPlayer player = ProxyServer.getInstance().getPlayer(name);
+                if (player != null) {
+                    player.sendMessage(msg);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasPerms(Object player, String perms) {
+        return player != null && ((CommandSender) player).hasPermission(perms);
+    }
+
+    @Override
+    public Permissionable getOfflinePermissionPlayer(String name) {
+        if (permissionableGenerator != null) {
+            return permissionableGenerator.apply(name);
+        }
+
+        return permission -> false;
+    }
+
+    @Override
+    public boolean isOnline(String name, boolean checkRedis) {
+        try {
+            if (Universal.isRedis() && checkRedis) {
+                UUID uuid = RedisBungeeAPI.getRedisBungeeApi().getUuidFromName(name);
+                Set<UUID> onlinePlayers = RedisBungeeAPI.getRedisBungeeApi().getPlayersOnline();
+                for (UUID onlineID : onlinePlayers) {
+                    if (uuid.equals(onlineID)) {
+                        return RedisBungeeAPI.getRedisBungeeApi().getPlayerIp(onlineID) != null;
+                    }
+                }
+            }
+            return getPlayer(name).getAddress() != null;
+        } catch (NullPointerException exc) {
+            return false;
+        }
+    }
+
+    @Override
+    public ProxiedPlayer getPlayer(String name) {
+        return ProxyServer.getInstance().getPlayer(name);
+    }
+
+
+    @Override
+    public void kickPlayer(String player, String reason) {
+        if (Universal.isRedis()) {
+            HytaleMain.redis.sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
+        } else {
+            getPlayer(player).disconnect(TextComponent.fromLegacyText(reason));
+        }
+    }
+
+    @Override
+    public void logBan(String name, Punishment punishment) {
+        if (Universal.isRedis()) {
+            HytaleMain.redis.sendChannelMessage("advancedban:main", "logBan " + name + " " + Universal.get().serialiseObject(punishment));
+
+        } else {
+            ProxiedPlayer player = getPlayer(name);
+
+            PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
+            kickAllOnIP(player.getAddress().getHostName(), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+        }
+    }
+
+    @Override
+    public ProxiedPlayer[] getOnlinePlayers() {
+        return ProxyServer.getInstance().getPlayers().toArray(new ProxiedPlayer[]{});
+    }
+
+    @Override
+    public List<String> getOnlinePlayerNames(boolean redis) {
+        List<String> names = new ArrayList<>();
+
+        if (Universal.isRedis()) {
+            names = HytaleMain.redis.getHumanPlayersOnline()
+                    .stream()
+                    .filter(Objects::nonNull).collect(Collectors.toList());
+
+        } else {
+            for (ProxiedPlayer player : ProxyServer.getInstance().getPlayers()) {
+                names.add(player.getName());
+            }
+        }
+
+        return names;
+    }
+
+    @Override
+    public void scheduleAsyncRep(Runnable rn, long l1, long l2) {
+        ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, l2 * 50, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void scheduleAsync(Runnable rn, long l1) {
+        ProxyServer.getInstance().getScheduler().schedule(getPlugin(), rn, l1 * 50, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void runAsync(Runnable rn) {
+        ProxyServer.getInstance().getScheduler().runAsync(getPlugin(), rn);
+    }
+
+    @Override
+    public void runSync(Runnable rn) {
+        rn.run(); //TODO WARNING not Sync to Main-Thread
+    }
+
+    @Override
+    public void executeCommand(String cmd) {
+        ProxyServer.getInstance().getPluginManager().dispatchCommand(ProxyServer.getInstance().getConsole(), cmd);
+    }
+
+    @Override
+    public String getName(Object player) {
+        return ((CommandSender) player).getName();
+    }
+
+    @Override
+    public String getName(String uuid) {
+        return ProxyServer.getInstance().getPlayer(UUID.fromString(uuid)).getName();
+    }
+
+    @Override
+    public String getIP(Object player) {
+        return ((ProxiedPlayer) player).getAddress().getAddress().getHostAddress();
+    }
+
+    @Override
+    public String getInternUUID(Object player) {
+        return player instanceof ProxiedPlayer ? ((ProxiedPlayer) player).getUniqueId().toString().replaceAll("-", "") : "none";
+    }
+
+    @Override
+    public String getInternUUID(String player) {
+        ProxiedPlayer proxiedPlayer = getPlayer(player);
+        if (proxiedPlayer == null) {
+            return null;
+        }
+        UUID uniqueId = proxiedPlayer.getUniqueId();
+        return uniqueId == null ? null : uniqueId.toString().replaceAll("-", "");
+    }
+
+    @Override
+    public boolean callChat(Object player) {
+        Punishment pnt = PunishmentManager.get().getMute(UUIDManager.get().getUUID(getName(player)));
+        if (pnt != null) {
+            for (String str : pnt.getLayout()) {
+                sendMessage(player, str);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean callCMD(Object player, String cmd) {
+        Punishment pnt;
+        if (Universal.get().isMuteCommand(cmd.substring(1))
+                && (pnt = PunishmentManager.get().getMute(UUIDManager.get().getUUID(getName(player)))) != null) {
+            for (String str : pnt.getLayout()) {
+                sendMessage(player, str);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Object getMySQLFile() {
+        return mysql;
+    }
+
+    @Override
+    public String parseJSON(InputStreamReader json, String key) {
+        JsonElement element = new JsonParser().parse(json);
+        if (element instanceof JsonNull) {
+            return null;
+        }
+        JsonElement obj = ((JsonObject) element).get(key);
+        return obj != null ? obj.toString().replaceAll("\"", "") : null;
+    }
+
+    @Override
+    public String parseJSON(String json, String key) {
+        JsonElement element = new JsonParser().parse(json);
+        if (element instanceof JsonNull) {
+            return null;
+        }
+        JsonElement obj = ((JsonObject) element).get(key);
+        return obj != null ? obj.toString().replaceAll("\"", "") : null;
+    }
+
+    @Override
+    public Boolean getBoolean(Object file, String path) {
+        return ((Configuration) file).getBoolean(path);
+    }
+
+    @Override
+    public String getString(Object file, String path) {
+        return ((Configuration) file).getString(path);
+    }
+
+    @Override
+    public Long getLong(Object file, String path) {
+        return ((Configuration) file).getLong(path);
+    }
+
+    @Override
+    public Integer getInteger(Object file, String path) {
+        return ((Configuration) file).getInt(path);
+    }
+
+    @Override
+    public List<String> getStringList(Object file, String path) {
+        return ((Configuration) file).getStringList(path);
+    }
+
+    @Override
+    public boolean getBoolean(Object file, String path, boolean def) {
+        return ((Configuration) file).getBoolean(path, def);
+    }
+
+    @Override
+    public String getString(Object file, String path, String def) {
+        return ((Configuration) file).getString(path, def);
+    }
+
+    @Override
+    public long getLong(Object file, String path, long def) {
+        return ((Configuration) file).getLong(path, def);
+    }
+
+    @Override
+    public int getInteger(Object file, String path, int def) {
+        return ((Configuration) file).getInt(path, def);
+    }
+
+    @Override
+    public boolean contains(Object file, String path) {
+        return ((Configuration) file).get(path) != null;
+    }
+
+    @Override
+    public String getFileName(Object file) {
+        return "[Only available on Bukkit-Version!]";
+    }
+
+    @Override
+    public void callPunishmentEvent(Punishment punishment) {
+        getPlugin().getProxy().getPluginManager().callEvent(new PunishmentEvent(punishment));
+    }
+
+    @Override
+    public void callRevokePunishmentEvent(Punishment punishment, boolean massClear) {
+        getPlugin().getProxy().getPluginManager().callEvent(new RevokePunishmentEvent(punishment, massClear));
+    }
+
+    @Override
+    public boolean isOnlineMode() {
+        return ProxyServer.getInstance().getConfig().isOnlineMode();
+    }
+
+    @Override
+    public void notify(String perm, List<String> notification) {
+        if (Universal.isRedis()) {
+            notification.forEach((str) -> HytaleMain.redis.sendChannelMessage("advancedban:main", "notification " + perm + " " + str));
+        } else {
+            ProxyServer.getInstance().getPlayers()
+                    .stream()
+                    .filter((pp) -> (Universal.get().hasPerms(pp, perm)))
+                    .forEachOrdered((pp) -> notification.forEach((str) -> sendMessage(pp, str)));
+        }
+    }
+
+    @Override
+    public void log(String msg) {
+        ProxyServer.getInstance().getConsole().sendMessage(TextComponent.fromLegacyText(msg.replaceAll("&", "§")));
+    }
+
+    @Override
+    public boolean isUnitTesting() {
+        return false;
+    }
+
+    @Override
+    public void sendRedisMessage(String channel, String message) {
+        HytaleMain.redis.sendChannelMessage(channel, message);
+    }
+
+    @Override
+    public String getRedisProxyID() {
+        return HytaleMain.get().getRedisProxyID();
+    }
+
+    @Override
+    public void loadWarnBanWords() {
+        RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
+        RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
+    }
+
+    @Override
+    public void kickAllOnIP(String ip, String kickMessage) {
+        if (Universal.isRedis()) {
+            HytaleMain.redis.sendChannelMessage("advancedban:main", "kickallonip " + ip + " " + kickMessage);
+
+        } else {
+            for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
+                if (p.getAddress().getAddress().getHostAddress().equals(ip)) {
+                    p.disconnect(Utils.colour(kickMessage));
+                }
+            }
+        }
+    }
+}
