@@ -147,8 +147,10 @@ public class UUIDManager {
         if (initialUUID != null) return initialUUID;
 
         // If the user is null, as a failsafe we check the player database from BungeeCore
-        PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
-        return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");
+        /*PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
+        return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");*/
+
+        return null;
     }
 
     /**

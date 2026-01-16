@@ -34,18 +34,20 @@ public class ConfigUtils {
     }
 
     public Configuration loadResource(String resourceName) {
+        Path resourcePath = this.pluginDirectory.resolve(resourceName);
+
         try {
             Files.createDirectories(pluginDirectory);
 
             // If missing, copy the resource to disk (preserves exactly what's in the jar)
-            if (Files.notExists(pluginConfigPath)) {
+            if (Files.notExists(resourcePath)) {
                 try (InputStream in = javaPlugin.getClass().getClassLoader().getResourceAsStream(resourceName)) {
                     if (in == null) {
                         throw new IllegalStateException(
                                 "Missing " + resourceName + " in src/main/resources (it must be packaged in the jar)"
                         );
                     }
-                    Files.copy(in, pluginConfigPath);
+                    Files.copy(in, resourcePath);
                 }
             }
 
@@ -64,7 +66,7 @@ public class ConfigUtils {
 
             // Load the server config from the disk
             Map<String, Object> server;
-            try (InputStream in = Files.newInputStream(pluginConfigPath)) {
+            try (InputStream in = Files.newInputStream(resourcePath)) {
                 server = yaml.load(in);
             }
             if (server == null) server = new LinkedHashMap<>();

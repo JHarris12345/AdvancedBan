@@ -12,8 +12,6 @@ public class PunishmentEvent implements IEvent<Void> {
 
     public PunishmentEvent(Punishment punishment) {
         this.punishment = punishment;
-
-        DiscordWebhookManager.sendDiscordEmbed("New punishment", punishment);
     }
 
     public Punishment getPunishment() {

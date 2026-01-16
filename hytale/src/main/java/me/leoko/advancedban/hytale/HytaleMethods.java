@@ -22,6 +22,7 @@ import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.hytale.event.PunishmentEvent;
 import me.leoko.advancedban.hytale.event.RevokePunishmentEvent;
 import me.leoko.advancedban.hytale.listener.CommandReceiverHytale;
+import me.leoko.advancedban.hytale.managers.DiscordWebhookManager;
 import me.leoko.advancedban.hytale.utils.ColourUtils;
 import me.leoko.advancedban.hytale.utils.LuckPermsOfflineUser;
 import me.leoko.advancedban.hytale.utils.Utils;
@@ -486,7 +487,8 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void callPunishmentEvent(Punishment punishment) {
-        HytaleServer.get().getEventBus().dispatch(PunishmentEvent.class);
+        //HytaleServer.get().getEventBus().dispatch(PunishmentEvent.class); // This is NOT how you call an event in Hytale (don't know how yet but we don't need it
+        DiscordWebhookManager.sendDiscordEmbed("New punishment", punishment);
     }
 
     @Override
@@ -535,8 +537,14 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public void loadWarnBanWords() {
-        RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
-        RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
+        if (Universal.isRedis()) {
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_WARN_WORDS");
+            RedisBungeeAPI.getRedisBungeeApi().sendChannelMessage("bungeecore:main", "REQUEST_BAN_WORDS");
+
+        } else {
+            Universal.get().immediateBanWords = config.getStringList("ImmediateBanWords");
+            Universal.get().warnWords = config.getStringList("WarnWords");
+        }
     }
 
     @Override
