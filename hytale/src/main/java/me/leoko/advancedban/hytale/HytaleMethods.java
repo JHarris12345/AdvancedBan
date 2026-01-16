@@ -33,6 +33,7 @@ import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.RecentBan;
 import me.leoko.advancedban.utils.tabcompletion.TabCompleter;
 
+import java.awt.*;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -40,6 +41,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -252,7 +254,10 @@ public class HytaleMethods implements MethodInterface {
         if (Universal.isRedis()) {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
         } else {
-            getPlayer(player).getPacketHandler().disconnect(reason);
+            PlayerRef ref = getPlayer(player);
+            String rawMessage = ColourUtils.stripColour(ColourUtils.colour(reason.replace("§", "&")));
+
+            Universe.get().getWorld(ref.getWorldUuid()).execute(() -> ref.getPacketHandler().disconnect(rawMessage));
         }
     }
 

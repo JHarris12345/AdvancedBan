@@ -115,4 +115,19 @@ public class ColourUtils {
         parts.add(msg);
         buffer.setLength(0);
     }
+
+    // We can't use message.getRawText() on Messages made from the colour util because that
+    // creates multiple component layers and getRawText() only works if there's 1 layer
+    public static String stripColour(Message message) {
+        if (message == null) return "";
+
+        String raw = message.getRawText();
+        if (raw != null) return raw;
+
+        StringBuilder out = new StringBuilder();
+        for (Message child : message.getChildren()) {
+            out.append(stripColour(child));
+        }
+        return out.toString();
+    }
 }
