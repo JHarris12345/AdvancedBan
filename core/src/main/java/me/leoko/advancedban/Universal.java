@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import me.leoko.advancedban.manager.*;
 import me.leoko.advancedban.utils.Command;
 import me.leoko.advancedban.utils.InterimData;
+import me.leoko.advancedban.utils.Platform;
 import me.leoko.advancedban.utils.Punishment;
 import org.apache.commons.io.FileUtils;
 
@@ -36,6 +37,7 @@ public class Universal {
     private LogManager logManager;
 
     private static boolean redis = false;
+    public Platform platform;
 
     private final Gson gson = new Gson();
 
@@ -61,8 +63,9 @@ public class Universal {
      *
      * @param mi the mi
      */
-    public void setup(MethodInterface mi) {
+    public void setup(MethodInterface mi, Platform platform) {
         this.mi = mi;
+        this.platform = platform;
         mi.loadFiles();
         logManager = new LogManager();
         UpdateManager.get().setup();

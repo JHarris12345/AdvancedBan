@@ -4,6 +4,7 @@ import me.jharris.bungeecore.managers.plugins.PlayerDatabaseManager;
 import me.jharris.bungeecore.objects.playerdatabase.PDLoadedPlayer;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
+import me.leoko.advancedban.utils.Platform;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -146,11 +147,12 @@ public class UUIDManager {
         String initialUUID = getInitialUUID(name);
         if (initialUUID != null) return initialUUID;
 
-        // If the user is null, as a failsafe we check the player database from BungeeCore
-        /*PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
-        return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");*/
+        if (Universal.get().platform == Platform.BUNGEE) {
+            // If the user is null, as a failsafe we check the player database from BungeeCore
+            PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
+            return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");
 
-        return null;
+        } else return null;
     }
 
     /**

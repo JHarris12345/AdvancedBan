@@ -11,6 +11,7 @@ import me.leoko.advancedban.hytale.listener.ChatListenerHytale;
 import me.leoko.advancedban.hytale.listener.ConnectionListenerHytale;
 import me.leoko.advancedban.hytale.listener.PubSubMessageListener;
 import me.leoko.advancedban.hytale.utils.config.ConfigUtils;
+import me.leoko.advancedban.utils.Platform;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class HytaleMain extends JavaPlugin {
     protected void setup() {
         instance = this;
         configUtils = new ConfigUtils(this,"AdvancedBan");
-        Universal.get().setup(new HytaleMethods());
+        Universal.get().setup(new HytaleMethods(), Platform.HYTALE);
 
 
         getEventRegistry().registerGlobal(PlayerChatEvent.class, ChatListenerHytale::onChat);

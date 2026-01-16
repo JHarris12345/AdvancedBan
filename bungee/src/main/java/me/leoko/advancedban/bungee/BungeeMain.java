@@ -6,6 +6,7 @@ import me.leoko.advancedban.bungee.listener.ChatListenerBungee;
 import me.leoko.advancedban.bungee.listener.ConnectionListenerBungee;
 import me.leoko.advancedban.bungee.listener.InternalListener;
 import me.leoko.advancedban.bungee.listener.PubSubMessageListener;
+import me.leoko.advancedban.utils.Platform;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -24,7 +25,7 @@ public class BungeeMain extends Plugin {
     @Override
     public void onEnable() {
         instance = this;
-        Universal.get().setup(new BungeeMethods());
+        Universal.get().setup(new BungeeMethods(), Platform.BUNGEE);
         ProxyServer.getInstance().getPluginManager().registerListener(this, new ConnectionListenerBungee());
         ProxyServer.getInstance().getPluginManager().registerListener(this, new ChatListenerBungee());
         //ProxyServer.getInstance().getPluginManager().registerListener(this, new InternalListener());
