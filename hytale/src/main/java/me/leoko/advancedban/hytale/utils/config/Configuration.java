@@ -19,10 +19,6 @@ public class Configuration extends ConfigurationSection {
         super((data == null) ? new LinkedHashMap<>() : new LinkedHashMap<>(data));
     }
 
-    public Map<String, Object> getData() {
-        return data;
-    }
-
     private Object getValue(String path) {
         String[] parts = path.split("\\.");
         Object current = data;
