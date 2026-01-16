@@ -33,6 +33,10 @@ public class Configuration extends ConfigurationSection {
         return current;
     }
 
+    public Object get(String path) {
+        return getValue(path);
+    }
+
     public String getString(String path) {
         Object value = getValue(path);
         return (value != null) ? String.valueOf(value) : null;

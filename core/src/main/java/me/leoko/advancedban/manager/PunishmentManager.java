@@ -426,7 +426,7 @@ public class PunishmentManager {
     }
 
     public void addToPunishmentMap(Punishment punishment, boolean checkExpired, boolean redis) {
-        if (!redis) {
+        if (!redis || !Universal.isRedis()) {
             PunishmentManager.get().getLoadedPunishments(checkExpired).put(punishment.getId(), punishment);
 
         } else {
@@ -436,7 +436,7 @@ public class PunishmentManager {
     }
 
     public void removeFromPunishmentMap(Punishment punishment, boolean redis) {
-        if (!redis) {
+        if (!redis || !Universal.isRedis()) {
             PunishmentManager.get().getLoadedPunishments(false).remove(punishment.getId());
 
         } else {
@@ -446,7 +446,7 @@ public class PunishmentManager {
     }
 
     public void addToHistoryMap(Punishment punishment, boolean redis) {
-        if (!redis) {
+        if (!redis || !Universal.isRedis()) {
             PunishmentManager.get().getLoadedHistory().put(punishment.getId(), punishment);
 
         } else {

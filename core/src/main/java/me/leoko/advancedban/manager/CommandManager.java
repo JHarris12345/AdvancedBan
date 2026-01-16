@@ -3,6 +3,9 @@ package me.leoko.advancedban.manager;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.utils.Command;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * The Command Manager is used to handle commands based on the sender, command-name and arguments.
  */
@@ -43,7 +46,13 @@ public class CommandManager {
                 return;
             }
 
-            command.execute(sender, args);
+            command.execute(sender, args); // We make it to here. Now debug from here why it doesn't work
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         });
     }
 }

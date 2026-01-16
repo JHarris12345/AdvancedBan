@@ -38,6 +38,7 @@ public class MessageManager {
         } else {
             str = replace(str, parameters).replace('&', '§');
         }
+
         return str;
     }
 
@@ -77,6 +78,7 @@ public class MessageManager {
             for (String str : mi.getStringList(file, path)) {
                 list.add(replace(str, parameters).replace('&', '§'));
             }
+
             return list;
         }
         String fileName = mi.getFileName(file);
@@ -105,8 +107,9 @@ public class MessageManager {
     public static void sendMessage(Object receiver, String path, boolean prefix, String... parameters) {
     	MethodInterface mi = mi();
         final String message = getMessage(path, parameters);
-        if(!message.isEmpty()) {
+        if (!message.isEmpty()) {
             final String prefixString = prefix && !mi.getBoolean(mi.getConfig(), "Disable Prefix", false) ? getMessage("General.Prefix") + " " : "";
+
             mi.sendMessage(receiver, prefixString + message);
         }
     }

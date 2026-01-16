@@ -1,5 +1,6 @@
 package me.leoko.advancedban.utils;
 
+import com.google.gson.stream.JsonToken;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.manager.*;
@@ -141,8 +142,8 @@ public class Punishment {
                 "NAME", getName(),
                 "ID", String.valueOf(id),
                 "HEXID", getHexId(),
-                "DATE", getDate(start),
-                "COUNT", cWarnings + "");
+                "DATE", getDate(start), // Somewhere between here
+                "COUNT", cWarnings + ""); // And here is the issue
 
         mi.notify("ab.notify." + getType().getName(), notification);
     }

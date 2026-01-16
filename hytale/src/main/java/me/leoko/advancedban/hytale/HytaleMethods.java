@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.hypixel.hytale.common.semver.SemverRange;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.NameMatching;
@@ -12,6 +13,7 @@ import com.hypixel.hytale.server.core.console.ConsoleSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.World;
 import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.quic.QuicStreamChannel;
@@ -21,6 +23,7 @@ import me.leoko.advancedban.hytale.event.PunishmentEvent;
 import me.leoko.advancedban.hytale.event.RevokePunishmentEvent;
 import me.leoko.advancedban.hytale.listener.CommandReceiverHytale;
 import me.leoko.advancedban.hytale.utils.ColourUtils;
+import me.leoko.advancedban.hytale.utils.LuckPermsOfflineUser;
 import me.leoko.advancedban.hytale.utils.Utils;
 import me.leoko.advancedban.hytale.utils.config.Configuration;
 import me.leoko.advancedban.manager.PunishmentManager;
@@ -60,19 +63,15 @@ public class HytaleMethods implements MethodInterface {
     private final Function<String, Permissionable> permissionableGenerator;
 
     public HytaleMethods() {
-        /*if (ProxyServer.getInstance().getPluginManager().getPlugin("LuckPerms") != null) {
+        //if (ProxyServer.getInstance().getPluginManager().getPlugin("LuckPerms") != null) {
             permissionableGenerator = LuckPermsOfflineUser::new;
 
             log("[AdvancedBan] Offline permission support through LuckPerms active");
-        } else {
+        /*} else {
             permissionableGenerator = null;
 
             log("[AdvancedBan] No offline permission support through LuckPerms or CloudNet-CloudPerms");
         }*/
-
-        permissionableGenerator = null;
-
-        log("[AdvancedBan] No offline permission support through LuckPerms or CloudNet-CloudPerms");
     }
 
     @Override
@@ -165,7 +164,14 @@ public class HytaleMethods implements MethodInterface {
     @SuppressWarnings("deprecation")
     @Override
     public void sendMessage(Object player, String msg) {
-        ((CommandSender) player).sendMessage(ColourUtils.colour(msg.replace("§", "&")));
+        Message message = ColourUtils.colour(msg.replace("§", "&"));
+
+        if (player instanceof PlayerRef ref) {
+            ref.sendMessage(message);
+            return;
+        }
+
+        ((CommandSender) player).sendMessage(message);
     }
 
     @Override
@@ -180,7 +186,7 @@ public class HytaleMethods implements MethodInterface {
             } else {
                 PlayerRef player = Universe.get().getPlayerByUsername(name, NameMatching.EXACT_IGNORE_CASE);
                 if (player != null) {
-                    player.sendMessage(ColourUtils.colour(msg));
+                    player.sendMessage(ColourUtils.colour(msg.replace("§", "&")));
                 }
             }
         }
@@ -188,7 +194,24 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public boolean hasPerms(Object player, String perms) {
-        return player != null && ((Player) player).hasPermission(perms);
+        if (player == null) return false;
+        if (player instanceof ConsoleSender) return true;
+
+        // If it's already a Player component, no need to hop threads.
+        if (player instanceof Player p) {
+            return p.hasPermission(perms);
+        }
+
+        if (player instanceof PlayerRef playerRef) {
+            World world = Universe.get().getWorld(playerRef.getWorldUuid());
+
+            return Utils.runOnWorldThreadBlocking(world, () -> {
+                Player p = playerRef.getComponent(Player.getComponentType()); // getComponent HAS to be done on the world thread so this is now safe
+                return p != null && p.hasPermission(perms);
+            });
+        }
+
+        return false;
     }
 
     @Override
@@ -284,7 +307,11 @@ public class HytaleMethods implements MethodInterface {
     @Override
     public void runAsync(Runnable rn) {
         //ProxyServer.getInstance().getScheduler().runAsync(getPlugin(), rn);
-        CompletableFuture.runAsync(rn);
+        CompletableFuture.runAsync(rn)
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
     @Override
@@ -299,6 +326,8 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public String getName(Object player) {
+        if (player instanceof PlayerRef ref) return ref.getUsername();
+
         return ((CommandSender) player).getDisplayName();
     }
 
@@ -472,8 +501,9 @@ public class HytaleMethods implements MethodInterface {
             notification.forEach((str) -> HytaleMain.redis.sendChannelMessage("advancedban:main", "notification " + perm + " " + str));
         } else {
             for (PlayerRef playerRef : getOnlinePlayers()) {
-                if (playerRef.getHolder().getComponent(Player.getComponentType()).hasPermission(perm)) {
-                    notification.forEach(msg -> playerRef.sendMessage(ColourUtils.colour(msg)));
+
+                if (hasPerms(playerRef, perm)) {
+                    notification.forEach(msg -> playerRef.sendMessage(ColourUtils.colour(msg.replace('§', '&'))));
                 }
             }
         }

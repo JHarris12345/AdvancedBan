@@ -24,6 +24,7 @@ public class CommandReceiverBungee extends Command {
     	if (args.length > 0) {
     		args[0] = (BungeeMain.get().getProxy().getPlayer(args[0]) != null ? BungeeMain.get().getProxy().getPlayer(args[0]).getName() : args[0]);
     	}
+
         CommandManager.get().onCommand(sender, this.getName(), args);
     }
     

@@ -36,8 +36,7 @@ public class PunishmentProcessor implements Consumer<Command.CommandInput> {
             return;
 
         // is exempted
-        if (processExempt(name, target, input.getSender(), type))
-            return;
+        if (processExempt(name, target, input.getSender(), type)) return;
 
         // calculate duration if necessary
         Long end = -1L;
@@ -52,7 +51,6 @@ public class PunishmentProcessor implements Consumer<Command.CommandInput> {
             if (calculation.template != null)
                 timeTemplate = calculation.template;
         }
-
 
         // build reason
         String reason = processReason(input);
@@ -119,7 +117,7 @@ public class PunishmentProcessor implements Consumer<Command.CommandInput> {
         MethodInterface mi = Universal.get().getMethods();
         String dataName = name.toLowerCase();
 
-        boolean exempt = false;
+        boolean exempt;
         if (mi.isOnline(dataName, true)) {
             Object onlineTarget = mi.getPlayer(dataName);
             exempt = canNotPunish((perms) -> mi.hasPerms(sender, perms), (perms) -> mi.hasPerms(onlineTarget, perms), type.getName());
@@ -140,8 +138,7 @@ public class PunishmentProcessor implements Consumer<Command.CommandInput> {
     // Check based on exempt level if some is able to ban a player
     public static boolean canNotPunish(Function<String, Boolean> operatorHasPerms, Function<String, Boolean> targetHasPerms, String path) {
         final String perms = "ab." + path + ".exempt";
-        if (targetHasPerms.apply(perms))
-            return true;
+        if (targetHasPerms.apply(perms)) return true;
 
         int targetLevel = permissionLevel(targetHasPerms, perms);
 
