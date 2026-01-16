@@ -36,7 +36,7 @@ public class Utils {
         return "NULL";
     }
 
-    // This BLOCKS that calling thread
+    // This BLOCKS that calling thread until this code is completed
     public static <T> T runOnWorldThreadBlocking(World world, Callable<T> task) {
         CompletableFuture<T> cf = new CompletableFuture<>();
         world.execute(() -> {
