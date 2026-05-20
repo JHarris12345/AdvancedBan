@@ -93,22 +93,22 @@ public class PubSubMessageListener implements Listener {
             } else if (msg[0].equals("cachePlayer")) {
 
             } else if (msg[0].equalsIgnoreCase("logBan")) {
-                String playerName = msg[1];
+                String ip = msg[2];
                 StringBuilder punishmentJSON = new StringBuilder();
 
-                for (int i=2; i<msg.length; i++) {
+                for (int i=3; i<msg.length; i++) {
                     punishmentJSON.append(msg[i] + " ");
                 }
 
-                MethodInterface mi = Universal.get().getMethods();
-                Object playerObj = mi.getPlayer(playerName);
+                Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
 
-                if (playerObj instanceof ProxiedPlayer player) {
-                    String ip = mi.getIP(player);
-                    Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
-                    PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
-
-                    mi.kickAllOnIP(ip, "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+                // Kick local players on the IP directly. Calling mi.kickAllOnIP here would re-broadcast
+                // the kick over redis from every proxy that received this logBan message.
+                for (ProxiedPlayer p : ProxyServer.getInstance().getPlayers()) {
+                    if (p.getAddress().getAddress().getHostAddress().equals(ip)) {
+                        p.disconnect(Utils.colour("&cAn account logged in with the same IP as you just got banned. Do NOT log back in"));
+                    }
                 }
 
             } else if (msg[0].equalsIgnoreCase("kickallonip")) {
