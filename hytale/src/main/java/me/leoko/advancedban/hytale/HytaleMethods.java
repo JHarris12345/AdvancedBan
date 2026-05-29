@@ -198,7 +198,7 @@ public class HytaleMethods implements MethodInterface {
 
         // If it's already a Player component, no need to hop threads.
         if (player instanceof Player p) {
-            return p.hasPermission(perms);
+            return p.getPlayerRef().hasPermission(perms);
         }
 
         if (player instanceof PlayerRef playerRef) {
@@ -206,7 +206,7 @@ public class HytaleMethods implements MethodInterface {
 
             return Utils.runOnWorldThreadBlocking(world, () -> {
                 Player p = playerRef.getComponent(Player.getComponentType()); // getComponent HAS to be done on the world thread so this is now safe
-                return p != null && p.hasPermission(perms);
+                return p != null && p.getPlayerRef().hasPermission(perms);
             });
         }
 
@@ -338,7 +338,7 @@ public class HytaleMethods implements MethodInterface {
     public String getName(Object player) {
         if (player instanceof PlayerRef ref) return ref.getUsername();
 
-        return ((CommandSender) player).getDisplayName();
+        return ((CommandSender) player).getUsername();
     }
 
     @Override
