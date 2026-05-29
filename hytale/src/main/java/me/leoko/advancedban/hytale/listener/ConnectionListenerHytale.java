@@ -34,10 +34,8 @@ public class ConnectionListenerHytale {
             String result = Universal.get().callConnection(event.getUsername(), ip);
 
             if (result != null) {
-                String rawMessage = ColourUtils.stripColour(ColourUtils.colour(result.replace("§", "&")));
-
                 event.setCancelled(true);
-                event.setReason(rawMessage);
+                event.setReason(ColourUtils.colour(result.replace("§", "&")));
             }
 
             // Catch if an alt logs in during a ban and ban them too (this is done after checking if the result is null so it only does the check if they're not already punished)
