@@ -61,11 +61,6 @@ public class TestMethods implements MethodInterface {
     }
 
     @Override
-    public void setupMetrics() {
-        //No metrics for testing needed
-    }
-
-    @Override
     public boolean isBungee() {
         return false;
     }
@@ -94,6 +89,11 @@ public class TestMethods implements MethodInterface {
     @Override
     public void sendMessage(Object player, String msg) {
         System.out.println("Message: "+player+" -> "+msg);
+    }
+
+    @Override
+    public void sendMessage(String name, String msg) {
+
     }
 
     @Override
@@ -152,6 +152,11 @@ public class TestMethods implements MethodInterface {
     @Override
     public Object[] getOnlinePlayers() {
         return new Object[0];
+    }
+
+    @Override
+    public List<String> getOnlinePlayerNames(boolean redis) {
+        return List.of();
     }
 
     @Override
@@ -302,6 +307,26 @@ public class TestMethods implements MethodInterface {
     @Override
     public boolean isUnitTesting() {
         return true;
+    }
+
+    @Override
+    public void sendRedisMessage(String channel, String message) {
+
+    }
+
+    @Override
+    public String getRedisProxyID() {
+        return "";
+    }
+
+    @Override
+    public void loadWarnBanWords() {
+
+    }
+
+    @Override
+    public void kickAllOnIP(String ip, String kickMessage) {
+
     }
 
     @Override
