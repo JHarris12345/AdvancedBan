@@ -248,14 +248,22 @@ public class BungeeMethods implements MethodInterface {
 
     @Override
     public void logBan(String name, Punishment punishment) {
+        // Resolve the IP from the live player when possible, otherwise fall back to the
+        // cached IP map. Needed because the ban-evasion auto-ban is triggered from within
+        // LoginEvent, before the player is registered as a ProxiedPlayer.
+        ProxiedPlayer player = getPlayer(name);
+        String ip = player != null ? getIP(player) : Universal.get().getIps().get(name.toLowerCase());
+
+        // No cached IP (e.g. banning a player who has never connected to this proxy). Nothing
+        // to register in recentBans since we don't know which IP to associate.
+        if (ip == null) return;
+
         if (Universal.isRedis()) {
-            BungeeMain.redis.sendChannelMessage("advancedban:main", "logBan " + name + " " + Universal.get().serialiseObject(punishment));
+            BungeeMain.redis.sendChannelMessage("advancedban:main", "logBan " + name + " " + ip + " " + Universal.get().serialiseObject(punishment));
 
         } else {
-            ProxiedPlayer player = getPlayer(name);
-
-            PunishmentManager.recentBans.put(getIP(player), new RecentBan(punishment, getIP(player), System.currentTimeMillis(), new ArrayList<>()));
-            kickAllOnIP(getIP(player), "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+            PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
+            kickAllOnIP(ip, "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
         }
     }
 

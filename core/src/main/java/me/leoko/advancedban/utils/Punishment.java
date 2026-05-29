@@ -106,10 +106,6 @@ public class Punishment {
             if (getType().getBasic() == PunishmentType.BAN || getType() == PunishmentType.KICK) {
                 mi.runSync(() -> mi.kickPlayer(getName(), getLayoutBSN()));
 
-                if (getType().getBasic() == PunishmentType.BAN) {
-                    mi.logBan(getName(), this);
-                }
-
             } else {
                 if (getType().getBasic() != PunishmentType.NOTE) {
                     for (String str : getLayout()) {
@@ -119,6 +115,12 @@ public class Punishment {
                 PunishmentManager.get().addToPunishmentMap(this, false, true);
             }
         };
+
+        // Broadcast bans to recentBans on every proxy. Must run even when the target is not
+        // yet a fully-connected ProxiedPlayer (e.g. ban-evasion auto-ban during LoginEvent).
+        if (getType().getBasic() == PunishmentType.BAN) {
+            mi.logBan(getName(), this);
+        }
 
         PunishmentManager.get().addToHistoryMap(this, true);
         mi.callPunishmentEvent(this);
