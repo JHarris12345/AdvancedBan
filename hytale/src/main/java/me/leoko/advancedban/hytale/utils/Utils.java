@@ -1,10 +1,9 @@
 package me.leoko.advancedban.hytale.utils;
 
+import com.hypixel.hytale.protocol.io.ChannelConnection;
 import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.quic.QuicStreamChannel;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -16,13 +15,12 @@ import java.util.regex.Pattern;
 public class Utils {
 
     public static String getIPFromPacketHandler(PacketHandler packetHandler) {
-        Channel ch = packetHandler.getChannel();
-        SocketAddress remote;
-        if (ch instanceof QuicStreamChannel quic) {
-            remote = quic.parent().remoteSocketAddress();
-        } else {
-            remote = ch.remoteAddress();
+        ChannelConnection channel = packetHandler.getChannel();
+        if (channel == null) {
+            return "NULL";
         }
+
+        SocketAddress remote = channel.remoteAddress();
 
         if (remote instanceof InetSocketAddress inet) {
             // This is the clean numeric IP like "203.0.113.10"

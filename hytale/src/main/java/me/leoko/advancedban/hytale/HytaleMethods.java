@@ -15,8 +15,6 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.imaginarycode.minecraft.redisbungee.RedisBungeeAPI;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.quic.QuicStreamChannel;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.hytale.event.PunishmentEvent;
@@ -38,8 +36,6 @@ import java.awt.*;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -256,9 +252,9 @@ public class HytaleMethods implements MethodInterface {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "kick " + player + " " + reason);
         } else {
             PlayerRef ref = getPlayer(player);
-            String rawMessage = ColourUtils.stripColour(ColourUtils.colour(reason.replace("§", "&")));
+            Message message = ColourUtils.colour(reason.replace("§", "&"));
 
-            Universe.get().getWorld(ref.getWorldUuid()).execute(() -> ref.getPacketHandler().disconnect(rawMessage));
+            Universe.get().getWorld(ref.getWorldUuid()).execute(() -> ref.getPacketHandler().disconnect(message));
         }
     }
 
@@ -353,24 +349,7 @@ public class HytaleMethods implements MethodInterface {
 
     @Override
     public String getIP(Object playerRef) {
-        Channel ch = ((PlayerRef) playerRef).getPacketHandler().getChannel();
-        SocketAddress remote;
-        if (ch instanceof QuicStreamChannel quic) {
-            remote = quic.parent().remoteSocketAddress();
-        } else {
-            remote = ch.remoteAddress();
-        }
-
-        if (remote instanceof InetSocketAddress inet) {
-            // This is the clean numeric IP like "203.0.113.10"
-            if (inet.getAddress() != null) {
-                return inet.getAddress().getHostAddress();
-            }
-            // Fallback if address unresolved
-            return inet.getHostString();
-        }
-
-        return "NULL";
+        return Utils.getIPFromPacketHandler(((PlayerRef) playerRef).getPacketHandler());
     }
 
     @Override
@@ -561,9 +540,10 @@ public class HytaleMethods implements MethodInterface {
             HytaleMain.redis.sendChannelMessage("advancedban:main", "kickallonip " + ip + " " + kickMessage);
 
         } else {
+            Message message = ColourUtils.colour(kickMessage.replace("§", "&"));
             for (PlayerRef p : getOnlinePlayers()) {
                 if (getIP(p).equals(ip)) {
-                    p.getPacketHandler().disconnect(kickMessage);
+                    p.getPacketHandler().disconnect(message);
                 }
             }
         }
