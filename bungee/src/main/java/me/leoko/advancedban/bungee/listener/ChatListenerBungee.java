@@ -74,18 +74,18 @@ public class ChatListenerBungee implements Listener {
                 if (Universal.get().warnWords.contains(filteredWord)) {
                     List<String> caughtWords = Universal.get().caughtWarnWords.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
-                    if (!caughtWords.contains(filteredWord)) {
+                    //if (!caughtWords.contains(filteredWord)) { // Just don't let them say it at all anymore. No need to let them say it and get themselves banned
                         event.setCancelled(true);
                         player.sendMessage(ChatColor.RED + "You tried to use the phrase '" + filteredWord + "'" +
                                 " which results in an immediate permanent ban. As this is your first time, we have" +
                                 " prevented you from using it. Please do not use it again if you want to remain on the server");
 
-                        caughtWords.add(filteredWord);
-                        Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
+                        //caughtWords.add(filteredWord);
+                        //Universal.get().caughtWarnWords.put(player.getUniqueId(), caughtWords);
 
                         Universal.get().log("Warned " + player.getName() + " for use of the phrase '" + filteredWord + "'");
                         WarnWordsLog.logToFile("Warned " + player.getName() + " (" + player.getUniqueId() + ") for use of the phrase '" + filteredWord + "' on " + server + ". Full message: '" + event.getMessage() + "'");
-                    }
+                    //}
 
                     // Else it is an auto-ban word so insta-ban and post the proof
                 } else {
