@@ -1,7 +1,10 @@
 package me.leoko.advancedban.hytale.listener;
 
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.imaginarycode.minecraft.redisbungee.events.PubSubMessageEvent;
 import me.leoko.advancedban.MethodInterface;
+import me.leoko.advancedban.hytale.utils.ColourUtils;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.hytale.HytaleMain;
 import me.leoko.advancedban.hytale.utils.Utils;
@@ -76,6 +79,9 @@ public class PubSubMessageListener {
                 Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
                 PunishmentManager.get().removeFromPunishmentMap(punishment, false);
 
+            } else if (msg[0].equalsIgnoreCase("removeFromRecentBans")) {
+                PunishmentManager.get().removeFromRecentBans(msg[1]);
+
             } else if (msg[0].startsWith("addToHistoryMap")) {
                 StringBuilder punishmentJSON = new StringBuilder();
                 for (int i=1; i<msg.length; i++) {
@@ -88,22 +94,22 @@ public class PubSubMessageListener {
             } else if (msg[0].equals("cachePlayer")) {
 
             } else if (msg[0].equalsIgnoreCase("logBan")) {
-                String playerName = msg[1];
+                String ip = msg[2];
                 StringBuilder punishmentJSON = new StringBuilder();
 
-                for (int i=2; i<msg.length; i++) {
+                for (int i=3; i<msg.length; i++) {
                     punishmentJSON.append(msg[i] + " ");
                 }
 
-                MethodInterface mi = Universal.get().getMethods();
-                Object playerObj = mi.getPlayer(playerName);
+                Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
+                PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
 
-                if (playerObj instanceof ProxiedPlayer player) {
-                    String ip = mi.getIP(player);
-                    Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
-                    PunishmentManager.recentBans.put(ip, new RecentBan(punishment, ip, System.currentTimeMillis(), new ArrayList<>()));
-
-                    mi.kickAllOnIP(ip, "&cAn account logged in with the same IP as you just got banned. Do NOT log back in");
+                // Kick local players on the IP directly. Calling mi.kickAllOnIP here would re-broadcast
+                // the kick over redis from every proxy that received this logBan message.
+                for (PlayerRef p : Universe.get().getPlayers()) {
+                    if (Universal.get().getMethods().getIP(p).equals(ip)) {
+                        p.getPacketHandler().disconnect(ColourUtils.colour("&cAn account logged in with the same IP as you just got banned. Do NOT log back in"));
+                    }
                 }
 
             } else if (msg[0].equalsIgnoreCase("kickallonip")) {

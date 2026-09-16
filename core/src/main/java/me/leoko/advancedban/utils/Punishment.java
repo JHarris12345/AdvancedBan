@@ -172,6 +172,13 @@ public class Punishment {
             PunishmentManager.get().removeFromPunishmentMap(this, true);
         }
 
+        // Clear the ban-evasion tracking on every proxy. Without this the IP stays armed in
+        // recentBans for the rest of the 24h window and alts would keep getting auto-banned
+        // even though the original punishment is gone.
+        if (getType().getBasic() == PunishmentType.BAN) {
+            PunishmentManager.get().removeFromRecentBans(this, true);
+        }
+
         if (who != null) {
             String message = MessageManager.getMessage("Un" + getType().getBasic().getConfSection("Notification"),
                     true, "OPERATOR", who, "NAME", getName());

@@ -81,6 +81,9 @@ public class PubSubMessageListener implements Listener {
                 Punishment punishment = (Punishment) Universal.get().deserialiseJson(punishmentJSON.toString().trim(), Punishment.class);
                 PunishmentManager.get().removeFromPunishmentMap(punishment, false);
 
+            } else if (msg[0].equalsIgnoreCase("removeFromRecentBans")) {
+                PunishmentManager.get().removeFromRecentBans(msg[1]);
+
             } else if (msg[0].startsWith("addToHistoryMap")) {
                 StringBuilder punishmentJSON = new StringBuilder();
                 for (int i=1; i<msg.length; i++) {
