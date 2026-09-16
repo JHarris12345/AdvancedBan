@@ -17,7 +17,7 @@ public class PunishmentManager {
     private final Map<Integer, Punishment> punishments = Collections.synchronizedMap(new HashMap<>());
     private final Map<Integer, Punishment> history = Collections.synchronizedMap(new HashMap<>());
     private final Set<String> cached = Collections.synchronizedSet(new HashSet<>());
-    public static HashMap<String, RecentBan> recentBans = new HashMap<>(); // A map of all IPs that have recently been banned and their RecentBan object
+    public static final Map<String, RecentBan> recentBans = Collections.synchronizedMap(new HashMap<>()); // A map of all IPs that have recently been banned and their RecentBan object
 
     private Universal universal() {
     	return Universal.get();
@@ -442,6 +442,34 @@ public class PunishmentManager {
         } else {
             String punishmentJSON = Universal.get().serialiseObject(punishment);
             Universal.get().getMethods().sendRedisMessage("advancedban:main", "removeFromPunishmentMap " + punishmentJSON);
+        }
+    }
+
+    /**
+     * Drop every {@link RecentBan} that belongs to the given punishment. The ban-evasion tracking
+     * is held in memory on every proxy, so a revoked ban has to be cleared everywhere and not just
+     * on the proxy the un-punish command was run on.
+     *
+     * @param punishment the punishment which got revoked
+     * @param redis      whether the removal should be broadcast to the other proxies
+     */
+    public void removeFromRecentBans(Punishment punishment, boolean redis) {
+        if (!redis || !Universal.isRedis()) {
+            removeFromRecentBans(punishment.getUuid());
+
+        } else {
+            Universal.get().getMethods().sendRedisMessage("advancedban:main", "removeFromRecentBans " + punishment.getUuid());
+        }
+    }
+
+    /**
+     * Drop every {@link RecentBan} registered for the given target from this proxy's cache.
+     *
+     * @param uuid the uuid (or IP for IP-bans) of the punishment which got revoked
+     */
+    public void removeFromRecentBans(String uuid) {
+        synchronized (recentBans) {
+            recentBans.values().removeIf(recentBan -> uuid.equalsIgnoreCase(recentBan.getPunishment().getUuid()));
         }
     }
 
