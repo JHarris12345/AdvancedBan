@@ -9,6 +9,7 @@ import me.leoko.advancedban.hytale.HytaleMain;
 import me.leoko.advancedban.manager.CommandManager;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 
 /**
@@ -17,9 +18,14 @@ import java.util.Arrays;
 
 public class CommandReceiverHytale extends CommandBase {
 
-    public CommandReceiverHytale(@Nonnull String name, @Nonnull String description, @Nonnull String permission) {
+    public CommandReceiverHytale(@Nonnull String name, @Nonnull String description, @Nullable String permission) {
         super(name, description);
-        this.requirePermission(permission);
+        // Hytale's PermissionQuery (new API) NPEs on a null id, and AdvancedBan registers some
+        // commands with no top-level permission (its own CommandManager enforces perms per-command
+        // via LuckPerms regardless). Only require a Hytale permission when one is actually supplied.
+        if (permission != null && !permission.isEmpty()) {
+            this.requirePermission(permission);
+        }
         this.setAllowsExtraArguments(true);
     }
 
