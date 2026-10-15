@@ -1,7 +1,7 @@
 package me.leoko.advancedban.manager;
 
-import me.jharris.bungeecore.managers.plugins.PlayerDatabaseManager;
-import me.jharris.bungeecore.objects.playerdatabase.PDLoadedPlayer;
+import me.jharris.bungeecore.plugins.playerdatabase.managers.PlayerDatabaseManager;
+import me.jharris.bungeecore.plugins.playerdatabase.objects.PDLoadedPlayer;
 import me.leoko.advancedban.MethodInterface;
 import me.leoko.advancedban.Universal;
 import me.leoko.advancedban.utils.Platform;
