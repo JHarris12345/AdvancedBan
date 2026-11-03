@@ -384,8 +384,9 @@ public enum Command {
 
                 String ip = Universal.get().getIps().getOrDefault(name.toLowerCase(), "none cashed");
                 String loc = Universal.get().getMethods().getFromUrlJson("http://ip-api.com/json/" + ip, "country");
-                Punishment mute = PunishmentManager.get().getMute(uuid);
-                Punishment ban = PunishmentManager.get().getBan(uuid);
+                // Database fallback so /check never reports "not banned" from a stale cache
+                Punishment mute = PunishmentManager.get().getActivePunishment(uuid, PunishmentType.MUTE);
+                Punishment ban = PunishmentManager.get().getActivePunishment(uuid, PunishmentType.BAN);
 
                 String cached = MessageManager.getMessage("Check.Cached", false);
                 String notCached = MessageManager.getMessage("Check.NotCached", false);

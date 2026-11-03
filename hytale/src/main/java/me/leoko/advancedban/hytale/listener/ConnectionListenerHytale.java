@@ -67,6 +67,11 @@ public class ConnectionListenerHytale {
 
                                 recentBan.getCaughtNames().add(playerName);
                                 event.setCancelled(true);
+
+                                // Same as the Bungee listener: the player was accepted into the cache before the
+                                // evasion check ran and a cancelled login never discards them, so drop them now or
+                                // this server answers "not banned" from stale memory
+                                PunishmentManager.get().discard(playerName);
                             }
 
                         } else {

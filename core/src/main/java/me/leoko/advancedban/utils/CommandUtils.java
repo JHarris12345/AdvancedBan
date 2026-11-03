@@ -8,9 +8,9 @@ import me.leoko.advancedban.manager.UUIDManager;
 
 public class CommandUtils {
     public static Punishment getPunishment(String target, PunishmentType type) {
-        return type == PunishmentType.MUTE
-                ? PunishmentManager.get().getMute(target)
-                : PunishmentManager.get().getBan(target);
+        // Staff revoking a punishment must never be told "not punished" by a stale cache, so this
+        // lookup falls back to the database when the cache holds nothing
+        return PunishmentManager.get().getActivePunishment(target, type == PunishmentType.MUTE ? PunishmentType.MUTE : PunishmentType.BAN);
     }
 
     // Removes name argument and returns uuid (null if failed)

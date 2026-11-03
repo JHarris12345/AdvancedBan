@@ -288,6 +288,50 @@ public class PunishmentManager {
     }
 
     /**
+     * Get a players active ban or mute like {@link #getBan(String)} / {@link #getMute(String)}, but when this
+     * proxy has the target cached and the cache holds nothing, ask the database as well.
+     * <p>
+     * A proxy can be left holding a player as cached with no ban in its map: the ban-evasion auto-ban is
+     * issued inside a login that was already accepted into the cache, and the cancelled login never fires
+     * the disconnect that would discard it. The login check itself always reads the database, so the player
+     * stays banned everywhere, but every staff lookup on that proxy answered "not banned" from stale memory
+     * until it restarted (2026-11-03, Artigliere5145 on Proxy-2). Meant for staff commands, not for the
+     * per-message mute check, which must stay cache-only.
+     *
+     * @param target the players uuid (can also be an IP)
+     * @param type   {@link PunishmentType#BAN} or {@link PunishmentType#MUTE} (the basic type, tempbans included)
+     * @return the punishment or <code>null</code> if there is none
+     */
+    public Punishment getActivePunishment(String target, PunishmentType type) {
+        List<Punishment> fromCache = getPunishments(target, type, true);
+        if (!fromCache.isEmpty()) return fromCache.get(0);
+        if (!isCached(target)) return null; // getPunishments already asked the database
+
+        List<Punishment> fromDatabase = new ArrayList<>();
+        try (ResultSet rs = DatabaseManager.get().executeResultStatement(SQLQuery.SELECT_USER_PUNISHMENTS, target)) {
+            while (rs.next()) {
+                Punishment punishment = getPunishmentFromResultSet(rs);
+                if (punishment.getType().getBasic() == type && !punishment.isExpired()) {
+                    fromDatabase.add(punishment);
+                }
+            }
+        } catch (SQLException ex) {
+            Universal universal = universal();
+            universal.log("An error has occurred getting the punishments for " + target);
+            universal.debugSqlException(ex);
+            return null;
+        }
+        if (fromDatabase.isEmpty()) return null;
+
+        fromDatabase.sort(Comparator.comparingLong(o -> -o.getStart()));
+        Punishment punishment = fromDatabase.get(0);
+
+        // The cache was stale, so put the punishment where the rest of the plugin expects to find it
+        getLoadedPunishments(false).put(punishment.getId(), punishment);
+        return punishment;
+    }
+
+    /**
      * Check whether a player is banned.
      *
      * @param uuid the players uuid (can also be an IP)

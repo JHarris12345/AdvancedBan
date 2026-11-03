@@ -68,6 +68,13 @@ public class ConnectionListenerBungee implements Listener {
 
                                 recentBan.getCaughtNames().add(playerName);
                                 event.setCancelled(true);
+
+                                // callConnection already accepted this player into the cache (they were not banned
+                                // at that point) and a cancelled login never fires PlayerDisconnectEvent, so without
+                                // this the proxy keeps them marked cached with no ban in its map. /check and /unban
+                                // on this proxy would then answer "not banned" from stale memory for as long as it
+                                // stays up, while the shared database still holds the ban.
+                                PunishmentManager.get().discard(playerName);
                             }
 
                         } else {
