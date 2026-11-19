@@ -149,10 +149,35 @@ public class UUIDManager {
 
         if (Universal.get().platform == Platform.BUNGEE) {
             // If the user is null, as a failsafe we check the player database from BungeeCore
-            PDLoadedPlayer loadedPlayer = PlayerDatabaseManager.getLoadedPlayer(name);
+            PDLoadedPlayer loadedPlayer = mostRecentPlayerWithName(name);
             return (loadedPlayer == null) ? null : loadedPlayer.getUuid().toString().replace("-", "");
 
         } else return null;
+    }
+
+    /**
+     * The player database record that most recently used this name, or null if none has it.
+     *
+     * ⛔ WHY NOT PlayerDatabaseManager.getLoadedPlayer(name). That returns the FIRST record whose stored name
+     * matches, in hash map order, and several records can match. A record keeps whatever name the player had
+     * the last time THEY joined, so when someone gives up a name and another account takes it, both records
+     * hold it until the old owner comes back. This fallback runs when the Mojang API refuses us (a 429 is
+     * routine) and the backup API is dead, so a /ban of an offline player could land on a long-gone account.
+     * It did on 2026-11-19: "/ban luznity" hit an account seen once in 2023 instead of the current holder,
+     * which had been banned since April.
+     *
+     * The record seen most recently with the name is the account that holds it now. The old owner's record
+     * can only still show the name because they have not joined since giving it up.
+     */
+    private PDLoadedPlayer mostRecentPlayerWithName(String name) {
+        PDLoadedPlayer best = null;
+
+        for (PDLoadedPlayer loadedPlayer : PlayerDatabaseManager.loadedPlayers.values()) {
+            if (!loadedPlayer.getUsername(true).equalsIgnoreCase(name)) continue;
+            if (best == null || loadedPlayer.getLastSeen() > best.getLastSeen()) best = loadedPlayer;
+        }
+
+        return best;
     }
 
     /**
